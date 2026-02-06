@@ -230,7 +230,7 @@ const api = useWorkbenchApi();
 onMounted(async () => {
   if (config.public.authMode !== 'disabled') {
     try {
-      await api.get('/api/auth/session');
+      await api.get('/api/auth/session', { skipAuthRedirect: true });
       // User authenticated, redirect to app
       await navigateTo('/projects');
       return; // Exit early if authenticated

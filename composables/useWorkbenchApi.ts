@@ -10,20 +10,21 @@ const isUnauthorized = (error: unknown): boolean => {
 };
 
 export const useWorkbenchApi = () => {
-  const request = async <T>(url: NitroFetchRequest, options: NitroFetchOptions<NitroFetchRequest> = {}) => {
+  const request = async <T>(url: NitroFetchRequest, options: NitroFetchOptions<NitroFetchRequest> & { skipAuthRedirect?: boolean } = {}) => {
     const forwardedHeaders = import.meta.server ? useRequestHeaders(['cookie']) : {};
+    const { skipAuthRedirect, ...fetchOptions } = options;
 
     try {
       return await $fetch<T>(url, {
-        ...options,
+        ...fetchOptions,
         credentials: 'include',
         headers: {
           ...(forwardedHeaders || {}),
-          ...(options.headers || {})
+          ...(fetchOptions.headers || {})
         }
       });
     } catch (error) {
-      if (import.meta.client && isUnauthorized(error)) {
+      if (import.meta.client && isUnauthorized(error) && !skipAuthRedirect) {
         const route = useRoute();
         const redirect = encodeURIComponent(route.fullPath || '/projects');
         await navigateTo(`/login?redirect=${redirect}`);
