@@ -154,6 +154,11 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
+// Disable the default layout - this page has its own marketing layout
+definePageMeta({
+  layout: false
+});
+
 // Register GSAP plugins
 if (import.meta.client) {
   gsap.registerPlugin(ScrollTrigger);
