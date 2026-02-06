@@ -2,7 +2,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // Public routes that don't require authentication
   const publicRoutes = ['/', '/login'];
 
+  // DEBUG: Log route information
+  console.log('[Auth Middleware]', { path: to.path, fullPath: to.fullPath, isPublic: publicRoutes.includes(to.path) });
+
   if (publicRoutes.includes(to.path)) {
+    console.log('[Auth Middleware] Allowing public route:', to.path);
     return;
   }
 
