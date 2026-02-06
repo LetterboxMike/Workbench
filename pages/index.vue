@@ -155,8 +155,10 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 // Disable the default layout - this page has its own marketing layout
+// Disable SSR to prevent hydration issues with animation components
 definePageMeta({
-  layout: false
+  layout: false,
+  ssr: false
 });
 
 // Register GSAP plugins
