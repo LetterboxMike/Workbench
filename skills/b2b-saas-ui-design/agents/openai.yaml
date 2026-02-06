@@ -1,0 +1,4 @@
+interface:
+  display_name: "B2B SaaS UI Design"
+  short_description: "Design production-grade B2B SaaS app interfaces."
+  default_prompt: "Use $b2b-saas-ui-design to design a production-ready B2B SaaS interface with a coherent system and implementation-ready specs."

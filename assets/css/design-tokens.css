@@ -1,0 +1,199 @@
+/**
+ * Workbench Design System — Design Tokens
+ * Version: 1.0
+ *
+ * Single source of truth for all design values.
+ * All colors are pure neutral grays with zero tint.
+ */
+
+/* ==========================================================================
+   NON-COLOR TOKENS (Theme-independent)
+   ========================================================================== */
+
+:root {
+  /* Typography - Font Stacks */
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+
+  /* Typography - Type Scale */
+  --type-display: 300 36px/1.0 var(--font-mono);
+  --type-h1: 600 24px/1.2 var(--font-body);
+  --type-h2: 600 20px/1.2 var(--font-body);
+  --type-h3: 500 16px/1.2 var(--font-body);
+  --type-body: 400 14px/1.5 var(--font-body);
+  --type-body-medium: 500 14px/1.5 var(--font-body);
+  --type-small: 400 13px/1.4 var(--font-body);
+  --type-caption: 400 12px/1.4 var(--font-mono);
+  --type-label: 400 11px/1.4 var(--font-mono);
+  --type-section: 300 10px/1.4 var(--font-mono);
+  --type-table-header: 300 10px/1.4 var(--font-mono);
+  --type-micro: 500 10px/1.4 var(--font-mono);
+
+  /* Typography - Letter Spacing */
+  --tracking-tight: -0.03em;
+  --tracking-h1: -0.02em;
+  --tracking-h2: -0.01em;
+  --tracking-normal: 0;
+  --tracking-label: 0.04em;
+  --tracking-table: 0.06em;
+  --tracking-section: 0.08em;
+  --tracking-sidebar-section: 0.14em;
+
+  /* Spacing Scale (4px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Layout Dimensions */
+  --topbar-height: 48px;
+  --sidebar-width: 220px;
+  --ai-panel-width: 360px;
+  --right-panel-width: 280px;
+  --content-max-width: 960px;
+  --content-max-width-list: 1100px;
+  --editor-max-width: 720px;
+  --kanban-column-min-width: 180px;
+
+  /* Border Radius */
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-pill: 20px;
+  --radius-full: 50%;
+
+  /* Transitions */
+  --transition-fast: 100ms ease;
+  --transition-normal: 150ms ease;
+  --transition-theme: 200ms ease;
+  --transition-panel: 200ms ease;
+}
+
+/* ==========================================================================
+   LIGHT MODE COLORS
+   ========================================================================== */
+
+[data-theme="light"] {
+  /* Gray Ramp (lightest → darkest) */
+  --gray-50: #F4F4F4;
+  --gray-100: #EAEAEA;
+  --gray-125: #E8E8E8;
+  --gray-150: #E0E0E0;
+  --gray-200: #DEDEDE;
+  --gray-250: #D6D6D6;
+  --gray-300: #C8C8C8;
+  --gray-350: #F0F0F0;
+  --gray-400: #B8B8B8;
+  --gray-500: #9A9A9A;
+  --gray-600: #8A8A8A;
+  --gray-700: #6E6E6E;
+  --gray-800: #4A4A4A;
+  --gray-900: #1C1C1C;
+
+  /* Backgrounds */
+  --color-bg: #F4F4F4;
+  --color-bg-surface: #EAEAEA;
+  --color-bg-elevated: #F0F0F0;
+  --color-bg-input: #F4F4F4;
+  --color-bg-hover: #E8E8E8;
+  --color-bg-active: #DEDEDE;
+  --color-bg-sidebar: #EAEAEA;
+  --color-bg-sidebar-hover: #E0E0E0;
+  --color-bg-sidebar-active: #D6D6D6;
+  --color-bg-ai: #F4F4F4;
+
+  /* Text */
+  --color-text: #1C1C1C;
+  --color-text-secondary: #6E6E6E;
+  --color-text-tertiary: #9A9A9A;
+  --color-text-ghost: rgba(154, 154, 154, 0.4);
+  --color-text-inverse: #F4F4F4;
+
+  /* Borders */
+  --color-border: #E0E0E0;
+  --color-border-strong: #C8C8C8;
+
+  /* Priority */
+  --color-priority-urgent: #1C1C1C;
+  --color-priority-high: #4A4A4A;
+  --color-priority-medium: #8A8A8A;
+  --color-priority-low: #B8B8B8;
+  --color-priority-none: transparent;
+
+  /* Calendar */
+  --color-calendar-today-bg: #1C1C1C;
+  --color-calendar-today-text: #F4F4F4;
+
+  /* AI */
+  --color-ai-glow: rgba(28, 28, 28, 0.06);
+  --color-ai-border: #C8C8C8;
+  --color-ai-bg: #F4F4F4;
+}
+
+/* ==========================================================================
+   DARK MODE COLORS
+   ========================================================================== */
+
+[data-theme="dark"] {
+  /* Gray Ramp (darkest → lightest) */
+  --gray-50: #161616;
+  --gray-100: #1A1A1A;
+  --gray-125: #1E1E1E;
+  --gray-150: #2A2A2A;
+  --gray-200: #2E2E2E;
+  --gray-250: #333333;
+  --gray-300: #3A3A3A;
+  --gray-350: #262626;
+  --gray-400: #4A4A4A;
+  --gray-500: #5C5C5C;
+  --gray-600: #7A7A7A;
+  --gray-700: #8A8A8A;
+  --gray-800: #B0B0B0;
+  --gray-900: #E2E2E2;
+
+  /* Backgrounds */
+  --color-bg: #161616;
+  --color-bg-surface: #1E1E1E;
+  --color-bg-elevated: #262626;
+  --color-bg-input: #1E1E1E;
+  --color-bg-hover: #2A2A2A;
+  --color-bg-active: #333333;
+  --color-bg-sidebar: #1A1A1A;
+  --color-bg-sidebar-hover: #242424;
+  --color-bg-sidebar-active: #2E2E2E;
+  --color-bg-ai: #1E1E1E;
+
+  /* Text */
+  --color-text: #E2E2E2;
+  --color-text-secondary: #8A8A8A;
+  --color-text-tertiary: #5C5C5C;
+  --color-text-ghost: rgba(92, 92, 92, 0.4);
+  --color-text-inverse: #161616;
+
+  /* Borders */
+  --color-border: #2A2A2A;
+  --color-border-strong: #3A3A3A;
+
+  /* Priority */
+  --color-priority-urgent: #E2E2E2;
+  --color-priority-high: #B0B0B0;
+  --color-priority-medium: #7A7A7A;
+  --color-priority-low: #4A4A4A;
+  --color-priority-none: transparent;
+
+  /* Calendar */
+  --color-calendar-today-bg: #E2E2E2;
+  --color-calendar-today-text: #161616;
+
+  /* AI */
+  --color-ai-glow: rgba(226, 226, 226, 0.04);
+  --color-ai-border: #3A3A3A;
+  --color-ai-bg: #1E1E1E;
+}

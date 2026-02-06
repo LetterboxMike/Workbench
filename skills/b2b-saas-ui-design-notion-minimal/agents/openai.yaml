@@ -1,0 +1,4 @@
+interface:
+  display_name: "B2B SaaS UI Minimal (Notion)"
+  short_description: "Design minimalist B2B UI with dual gray modes."
+  default_prompt: "Use $b2b-saas-ui-design-notion-minimal to design a minimalist B2B SaaS interface with light and dark gray token systems and no pure black or white values."
