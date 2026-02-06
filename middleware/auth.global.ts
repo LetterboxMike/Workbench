@@ -1,5 +1,8 @@
 export default defineNuxtRouteMiddleware(async (to) => {
-  if (to.path === '/login' || to.path === '/') {
+  // Public routes that don't require authentication
+  const publicRoutes = ['/', '/login'];
+
+  if (publicRoutes.includes(to.path)) {
     return;
   }
 
