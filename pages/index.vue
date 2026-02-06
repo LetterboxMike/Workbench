@@ -129,6 +129,9 @@
         </div>
       </section>
 
+      <!-- Testimonials & Stats -->
+      <MarketingTestimonials />
+
       <!-- Final CTA -->
       <section class="cta-section">
         <div class="cta-container">
@@ -155,10 +158,9 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 // Disable the default layout - this page has its own marketing layout
-// Disable SSR to prevent hydration issues with animation components
+// SSR is disabled via routeRules in nuxt.config.ts
 definePageMeta({
-  layout: false,
-  ssr: false
+  layout: false
 });
 
 // Register GSAP plugins
@@ -195,7 +197,30 @@ useHead({
   ],
   htmlAttrs: {
     lang: 'en'
-  }
+  },
+  script: [
+    {
+      type: 'application/ld+json',
+      children: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'Workbench',
+        applicationCategory: 'BusinessApplication',
+        operatingSystem: 'Web',
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD'
+        },
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: '4.8',
+          ratingCount: '127'
+        },
+        description: 'Document authoring, task management, and AI collaboration in one minimal interface. The Basecamp alternative built for speed.'
+      })
+    }
+  ]
 });
 
 // Auth check - redirect authenticated users to /projects

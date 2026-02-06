@@ -17,6 +17,12 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
+  // Disable SSR for marketing and auth pages
+  routeRules: {
+    '/': { ssr: false },        // Marketing homepage with GSAP animations
+    '/login': { ssr: false }     // Login page
+  },
+
   // Global CSS imports
   css: [
     '~/assets/css/design-tokens.css',
