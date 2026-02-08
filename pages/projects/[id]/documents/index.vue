@@ -165,6 +165,11 @@ header > div:last-child span {
 }
 
 header > div:last-child button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 500;
@@ -267,6 +272,13 @@ td > div > span {
 }
 
 td a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--color-text-secondary);

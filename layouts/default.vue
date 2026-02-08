@@ -38,6 +38,7 @@ const unreadCount = ref(0);
 const searchOpen = ref(false);
 const currentUserName = ref<string | null>(null);
 const organizations = ref<SessionOrganization[]>([]);
+const mobileNavOpen = ref(false);
 
 // Load pinned projects from localStorage
 const loadPinnedProjects = (): Set<string> => {
@@ -178,6 +179,7 @@ onMounted(() => {
 watch(
   () => route.fullPath,
   () => {
+    mobileNavOpen.value = false;
     loadShellData();
   },
   { immediate: true }
@@ -200,10 +202,14 @@ const switchOrg = async (orgId: string) => {
   await navigateTo('/projects');
   await loadShellData();
 };
+
+const toggleMobileNav = () => {
+  mobileNavOpen.value = !mobileNavOpen.value;
+};
 </script>
 
 <template>
-  <div class="app-shell">
+  <div :class="['app-shell', { 'mobile-nav-open': mobileNavOpen }]">
     <AppTopBar
       :section-label="sectionLabel"
       :current-project-name="currentProjectName"
@@ -213,15 +219,24 @@ const switchOrg = async (orgId: string) => {
       :unread-count="unreadCount"
       :current-user-name="currentUserName"
       :auth-enabled="authEnabled"
+      :mobile-nav-open="mobileNavOpen"
       @open-search="openSearch"
       @toggle-theme="toggleTheme"
       @open-ai="toggleAi"
       @switch-org="switchOrg"
       @logout="logout"
+      @toggle-nav="toggleMobileNav"
     />
 
     <div class="app-body">
+      <div
+        v-if="mobileNavOpen"
+        class="mobile-backdrop"
+        @click="mobileNavOpen = false"
+      />
+
       <AppSidebar
+        class="shell-sidebar"
         :projects="projects"
         :current-project-id="currentProjectId"
         :document-tree="documentTree"
@@ -258,6 +273,7 @@ const switchOrg = async (orgId: string) => {
   display: flex;
   flex: 1;
   overflow: hidden;
+  position: relative;
 }
 
 .main-content {
@@ -272,5 +288,39 @@ const switchOrg = async (orgId: string) => {
   max-width: var(--content-max-width);
   margin-left: auto;
   margin-right: auto;
+}
+
+.mobile-backdrop {
+  position: fixed;
+  top: var(--topbar-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(22, 22, 22, 0.35);
+  z-index: 30;
+}
+
+@media (max-width: 900px) {
+  .main-content {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .main-content > :deep(*) {
+    max-width: 100%;
+  }
+
+  .shell-sidebar {
+    position: fixed;
+    top: var(--topbar-height);
+    left: 0;
+    bottom: 0;
+    z-index: 40;
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal);
+  }
+
+  .mobile-nav-open .shell-sidebar {
+    transform: translateX(0);
+  }
 }
 </style>

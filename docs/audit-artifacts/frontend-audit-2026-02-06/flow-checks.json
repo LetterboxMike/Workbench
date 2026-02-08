@@ -1,0 +1,138 @@
+{
+  "timestamp": "2026-02-07T00:32:32.436Z",
+  "baseUrl": "http://127.0.0.1:4311",
+  "projectId": "0f0ec94f-b5a5-4e6f-b6b5-449230a89afc",
+  "docId": "c42fa11e-b38c-47fc-bf01-a4e6ec4cf723",
+  "results": [
+    {
+      "id": "AUD-001",
+      "area": "Functional",
+      "severity": "Critical",
+      "observed": false,
+      "route": "/settings",
+      "evidence": "screenshots/flow-settings-missing-auth-me.png",
+      "apiErrors": []
+    },
+    {
+      "id": "AUD-002",
+      "area": "Functional",
+      "severity": "Critical",
+      "observed": false,
+      "route": "/users",
+      "evidence": "screenshots/flow-users-delete-member.png",
+      "modalError": null,
+      "deleteApiCalled": true
+    },
+    {
+      "id": "AUD-003",
+      "area": "Missing Feature",
+      "severity": "High",
+      "observed": false,
+      "route": "/projects/0f0ec94f-b5a5-4e6f-b6b5-449230a89afc/tasks/list",
+      "evidence": "screenshots/flow-tasks-bulk-selection.png",
+      "taskPatchedOnToggle": false,
+      "bulkActionsVisible": false
+    },
+    {
+      "id": "AUD-004",
+      "area": "Functional",
+      "severity": "High",
+      "observed": true,
+      "route": "/projects/0f0ec94f-b5a5-4e6f-b6b5-449230a89afc/tasks/*",
+      "evidence": "screenshots/flow-task-cross-view-sync.png",
+      "createCalled": true,
+      "inKanban": true,
+      "inCalendarUnscheduled": true,
+      "createdTitle": "AUDIT_SYNC_1770424341165"
+    },
+    {
+      "id": "AUD-005",
+      "area": "Edge Case",
+      "severity": "Medium",
+      "observed": true,
+      "route": "/projects/0f0ec94f-b5a5-4e6f-b6b5-449230a89afc/documents/c42fa11e-b38c-47fc-bf01-a4e6ec4cf723",
+      "evidence": "screenshots/flow-editor-autosave-route-change.png",
+      "autosaveCall": false,
+      "persisted": true
+    },
+    {
+      "id": "AUD-006",
+      "area": "Edge Case",
+      "severity": "High",
+      "observed": false,
+      "route": "/projects/0f0ec94f-b5a5-4e6f-b6b5-449230a89afc/documents/c42fa11e-b38c-47fc-bf01-a4e6ec4cf723",
+      "evidence": "screenshots/flow-comment-convert-edge.png",
+      "convertClicked": false,
+      "emptyDisabled": false,
+      "converted": false
+    },
+    {
+      "id": "AUD-007",
+      "area": "Missing Feature",
+      "severity": "Medium",
+      "observed": false,
+      "route": "/admin/activity",
+      "evidence": "screenshots/flow-admin-activity-export.png",
+      "dialogs": []
+    },
+    {
+      "id": "AUD-011",
+      "area": "Functional",
+      "severity": "High",
+      "observed": false,
+      "route": "/users + /invite/:token",
+      "evidence": "screenshots/flow-invite-magic-link.png",
+      "inviteOpened": true,
+      "invalidEmailErrorShown": true,
+      "inviteUrlGenerated": true,
+      "redeemCalled": true,
+      "redeemErrorStatus": 400
+    },
+    {
+      "id": "AUD-012",
+      "area": "Edge Case",
+      "severity": "Medium",
+      "observed": false,
+      "route": "/projects",
+      "evidence": "screenshots/flow-rapid-project-create.png",
+      "createCalls": 1
+    },
+    {
+      "id": "AUD-008",
+      "area": "Accessibility",
+      "severity": "High",
+      "observed": false,
+      "route": "/projects",
+      "evidence": "screenshots/flow-keyboard-actions-menu.png",
+      "menuVisible": true
+    },
+    {
+      "id": "AUD-009",
+      "area": "Mobile",
+      "severity": "Critical",
+      "observed": false,
+      "route": "/projects",
+      "evidence": "screenshots/flow-mobile-320-layout.png",
+      "metrics": {
+        "viewport": 320,
+        "mainWidth": 320,
+        "pageWidth": 288,
+        "mainPadding": "24px 16px"
+      }
+    },
+    {
+      "id": "AUD-010",
+      "area": "Mobile",
+      "severity": "Medium",
+      "observed": false,
+      "route": "/projects",
+      "evidence": "screenshots/flow-mobile-touch-hover-control.png",
+      "pinState": {
+        "opacity": "1",
+        "pointerEvents": "auto",
+        "width": 44,
+        "height": 44
+      }
+    }
+  ]
+}

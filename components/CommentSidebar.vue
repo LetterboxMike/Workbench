@@ -19,6 +19,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   commentCreated: [comment: any];
   commentSelected: [commentId: string];
+  close: [];
 }>();
 
 const api = useWorkbenchApi();
@@ -32,8 +33,8 @@ const selectedCommentToConvert = ref<EnrichedComment | null>(null);
 // Fetch current user
 onMounted(async () => {
   try {
-    const userResponse = await api.get('/api/auth/me');
-    currentUserId.value = userResponse.data.id;
+    const sessionResponse = await api.get<{ data: { user: { id: string } } }>('/api/auth/session');
+    currentUserId.value = sessionResponse.data.user.id;
   } catch (error) {
     console.error('Failed to fetch current user:', error);
   }
@@ -46,7 +47,7 @@ const fetchComments = async () => {
   isLoading.value = true;
 
   try {
-    const response = await api.get('/api/comments', {
+    const response = await api.get<{ data: EnrichedComment[] }>('/api/comments', {
       params: {
         target_type: 'document',
         target_id: props.documentId
@@ -111,7 +112,10 @@ watch(
 <template>
   <div class="comment-sidebar">
     <div class="comment-sidebar-header">
-      <h3 class="comment-sidebar-title">Comments</h3>
+      <div class="header-top">
+        <h3 class="comment-sidebar-title">Comments</h3>
+        <button type="button" class="btn-close" @click="emit('close')" title="Close">×</button>
+      </div>
 
       <!-- Filter tabs -->
       <div class="comment-filter-tabs">
@@ -205,11 +209,27 @@ watch(
 
 <style scoped>
 .comment-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 420px;
+  max-width: 90vw;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  height: 100%;
   background: var(--color-bg);
   border-left: 1px solid var(--color-border);
+  z-index: 1000;
+  animation: slideInRight 0.2s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 .comment-sidebar-header {
@@ -220,12 +240,42 @@ watch(
   gap: var(--space-3);
 }
 
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 .comment-sidebar-title {
   font-family: var(--font-mono);
   font-size: 14px;
   font-weight: 600;
   color: var(--color-text);
   margin: 0;
+}
+
+.btn-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0;
+}
+
+.btn-close:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
 }
 
 .comment-filter-tabs {
@@ -252,9 +302,9 @@ watch(
 }
 
 .filter-tab.active {
-  background: var(--color-primary);
-  color: white;
-  border-color: var(--color-primary);
+  background: var(--color-bg-active);
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
 }
 
 .comment-sidebar-body {
@@ -277,16 +327,16 @@ watch(
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 500;
-  color: var(--color-primary);
-  background: var(--color-primary-bg, rgba(59, 130, 246, 0.1));
-  border: 1px dashed var(--color-primary);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-surface);
+  border: 1px dashed var(--color-border-strong);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .btn-new-comment:hover {
-  background: var(--color-primary-bg-hover, rgba(59, 130, 246, 0.15));
+  background: var(--color-bg-hover);
 }
 
 .new-comment-composer {
@@ -310,7 +360,7 @@ watch(
   width: 24px;
   height: 24px;
   border: 3px solid var(--color-border);
-  border-top-color: var(--color-primary);
+  border-top-color: var(--color-text-secondary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

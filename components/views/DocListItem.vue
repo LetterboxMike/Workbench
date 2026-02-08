@@ -2,6 +2,7 @@
 defineProps<{
   title: string;
   updatedAt: string;
+  owner?: string;
 }>();
 
 const emit = defineEmits<{
@@ -25,6 +26,7 @@ const formatDate = (date: string): string => {
       <polyline points="14,2 14,8 20,8" />
     </svg>
     <span class="doc-title">{{ title }}</span>
+    <span v-if="owner" class="doc-owner">{{ owner }}</span>
     <span class="doc-time">{{ formatDate(updatedAt) }}</span>
   </div>
 </template>
@@ -33,8 +35,8 @@ const formatDate = (date: string): string => {
 .doc-item {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) 0;
+  gap: 12px;
+  padding: 12px 0;
   border-bottom: 1px solid var(--color-border);
   cursor: pointer;
   transition: background var(--transition-fast);
@@ -42,14 +44,15 @@ const formatDate = (date: string): string => {
 
 .doc-item:hover {
   background: var(--color-bg-hover);
-  margin: 0 calc(-1 * var(--space-3));
-  padding-left: var(--space-3);
-  padding-right: var(--space-3);
+  margin: 0 -8px;
+  padding-left: 8px;
+  padding-right: 8px;
+  border-radius: 4px;
 }
 
 .doc-icon {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   color: var(--color-text-tertiary);
   flex-shrink: 0;
 }
@@ -57,12 +60,19 @@ const formatDate = (date: string): string => {
 .doc-title {
   flex: 1;
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--color-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.doc-owner {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
 }
 
 .doc-time {

@@ -36,6 +36,9 @@ export const logActivity = (options: LogOptions): ActivityLog => {
   return entry;
 };
 
+// Backward-compatible alias used by some API routes.
+export const logActivityLocal = logActivity;
+
 // Database-backed activity logging for Supabase mode
 export const logActivityDb = async (options: LogOptions): Promise<ActivityLog> => {
   return dbActivity.log({

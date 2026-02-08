@@ -1,12 +1,8 @@
 export default defineNuxtRouteMiddleware(async (to) => {
   // Public routes that don't require authentication
-  const publicRoutes = ['/', '/login'];
-
-  // DEBUG: Log route information
-  console.log('[Auth Middleware]', { path: to.path, fullPath: to.fullPath, isPublic: publicRoutes.includes(to.path) });
+  const publicRoutes = ['/', '/login', '/test-marketing'];
 
   if (publicRoutes.includes(to.path)) {
-    console.log('[Auth Middleware] Allowing public route:', to.path);
     return;
   }
 
@@ -20,7 +16,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const api = useWorkbenchApi();
 
   try {
-    await api.get('/api/auth/session');
+    // Use skipAuthRedirect to prevent the API wrapper from redirecting
+    // The middleware handles the redirect logic directly
+    await api.get('/api/auth/session', { skipAuthRedirect: true });
   } catch (error) {
     const status = (error as { statusCode?: number; status?: number } | null)?.statusCode ?? (error as { status?: number } | null)?.status;
 

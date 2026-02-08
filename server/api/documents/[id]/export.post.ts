@@ -43,7 +43,7 @@ export default defineEventHandler(async (event) => {
     // Supabase mode: use database
     user = await getCurrentUserDb(event);
     document = await getDocumentWithAccessDb(documentId, user.id, 'viewer');
-    content = await db.documentContent.get(documentId);
+    content = (await db.documentContent.get(documentId)) ?? undefined;
   } else {
     // Local mode: use store
     user = await getCurrentUser(event);
@@ -105,32 +105,35 @@ export default defineEventHandler(async (event) => {
   // Log export activity
   try {
     if (useDb) {
-      await logActivity({
-        org_id: document.org_id || '',
-        project_id: document.project_id,
-        actor_id: user.id,
-        actor_type: 'user',
-        action: 'document_exported',
-        target_type: 'document',
-        target_id: documentId,
-        metadata: {
-          format,
-          options,
-          document_title: document.title,
-        },
-      });
+      const project = await db.projects.get(document.project_id);
+      if (project) {
+        await logActivity({
+          orgId: project.org_id,
+          projectId: document.project_id,
+          actorId: user.id,
+          actorType: 'user',
+          action: 'document_exported',
+          targetType: 'document',
+          targetId: documentId,
+          metadata: {
+            format,
+            options,
+            document_title: document.title,
+          },
+        });
+      }
     } else {
       const store = getStore();
       const orgMember = store.org_members.find(om => om.user_id === user.id);
       if (orgMember) {
         await logActivity({
-          org_id: orgMember.org_id,
-          project_id: document.project_id,
-          actor_id: user.id,
-          actor_type: 'user',
+          orgId: orgMember.org_id,
+          projectId: document.project_id,
+          actorId: user.id,
+          actorType: 'user',
           action: 'document_exported',
-          target_type: 'document',
-          target_id: documentId,
+          targetType: 'document',
+          targetId: documentId,
           metadata: {
             format,
             options,
@@ -148,7 +151,7 @@ export default defineEventHandler(async (event) => {
   const filename = `${document.title.replace(/[^a-z0-9]/gi, '_')}.${fileExtension}`;
   setHeader(event, 'Content-Type', contentType);
   setHeader(event, 'Content-Disposition', `attachment; filename="${filename}"`);
-  setHeader(event, 'Content-Length', buffer.length.toString());
+  setHeader(event, 'Content-Length', buffer.length);
 
   return buffer;
 });

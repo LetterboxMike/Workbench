@@ -36,6 +36,11 @@ const emit = defineEmits<{
 }
 
 .tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   padding: 5px var(--space-3);
   font-family: var(--font-mono);
   font-size: 12px;

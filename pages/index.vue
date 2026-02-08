@@ -22,7 +22,7 @@
             </NuxtLink>
           </div>
           <div class="hero-screenshot">
-            <ScreenshotDocumentEditor />
+            <ScreenshotSlideshow />
           </div>
         </div>
         <div class="scroll-indicator">
@@ -201,7 +201,7 @@ useHead({
   script: [
     {
       type: 'application/ld+json',
-      children: JSON.stringify({
+      innerHTML: JSON.stringify({
         '@context': 'https://schema.org',
         '@type': 'SoftwareApplication',
         name: 'Workbench',
@@ -233,143 +233,11 @@ onMounted(async () => {
       await api.get('/api/auth/session', { skipAuthRedirect: true });
       // User authenticated, redirect to app
       await navigateTo('/projects');
-      return; // Exit early if authenticated
     } catch {
-      // User not authenticated, show marketing page and init animations
+      // User not authenticated, show marketing page
     }
   }
-
-  // Initialize hero animation timeline
-  initHeroAnimation();
-
-  // Initialize scroll-triggered animations
-  initScrollAnimations();
 });
-
-const initHeroAnimation = () => {
-  // Check for reduced motion preference
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  if (prefersReducedMotion) {
-    // Skip animations if user prefers reduced motion
-    return;
-  }
-
-  const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-
-  // Animate headline words with stagger
-  tl.from('.hero-headline span', {
-    y: 30,
-    opacity: 0,
-    duration: 0.8,
-    stagger: 0.1
-  })
-  // Fade in subheadline
-  .from('.hero-subheadline', {
-    opacity: 0,
-    y: 20,
-    duration: 0.6
-  }, '-=0.4')
-  // Animate CTA button with elastic easing
-  .from('.hero-cta', {
-    scale: 0.9,
-    opacity: 0,
-    duration: 0.5,
-    ease: 'elastic.out(1, 0.5)'
-  }, '-=0.3')
-  // Slide in hero screenshot
-  .from('.hero-screenshot', {
-    x: 100,
-    opacity: 0,
-    duration: 1,
-    ease: 'power2.out'
-  }, '-=0.5');
-};
-
-const initScrollAnimations = () => {
-  // Check for reduced motion preference
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  if (prefersReducedMotion) {
-    // Skip animations if user prefers reduced motion
-    return;
-  }
-
-  // Feature sections fade in on scroll
-  gsap.utils.toArray('.feature-section').forEach((section: any) => {
-    gsap.from(section, {
-      scrollTrigger: {
-        trigger: section,
-        start: 'top 80%',
-        end: 'top 50%',
-        toggleActions: 'play none none none'
-      },
-      y: 50,
-      opacity: 0,
-      duration: 0.8,
-      ease: 'power2.out'
-    });
-  });
-
-  // Parallax effect on screenshots
-  gsap.utils.toArray('.feature-screenshot').forEach((screenshot: any) => {
-    gsap.to(screenshot, {
-      scrollTrigger: {
-        trigger: screenshot,
-        start: 'top bottom',
-        end: 'bottom top',
-        scrub: 1
-      },
-      y: -50,
-      ease: 'none'
-    });
-  });
-
-  // Tri-panel stagger animation
-  const panels = gsap.utils.toArray('.panel-wrapper');
-  if (panels.length > 0) {
-    gsap.from(panels, {
-      scrollTrigger: {
-        trigger: '.tri-panel-real',
-        start: 'top 70%',
-        end: 'top 40%',
-        toggleActions: 'play none none none'
-      },
-      y: 60,
-      opacity: 0,
-      duration: 0.8,
-      stagger: 0.2,
-      ease: 'power2.out'
-    });
-  }
-
-  // AI demo fade and slide
-  gsap.from('.ai-demo', {
-    scrollTrigger: {
-      trigger: '.ai-demo',
-      start: 'top 75%',
-      toggleActions: 'play none none none'
-    },
-    y: 40,
-    opacity: 0,
-    duration: 1,
-    ease: 'power2.out'
-  });
-
-  // Design showcase color swatches stagger
-  gsap.from('.swatch', {
-    scrollTrigger: {
-      trigger: '.design-showcase',
-      start: 'top 70%',
-      toggleActions: 'play none none none'
-    },
-    scale: 0.8,
-    opacity: 0,
-    duration: 0.5,
-    stagger: 0.1,
-    ease: 'back.out(1.7)'
-  });
-};
 </script>
 
 <style scoped>
@@ -456,6 +324,8 @@ const initScrollAnimations = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  perspective: 1200px;
+  transform-style: preserve-3d;
 }
 
 .scroll-indicator {
@@ -465,12 +335,6 @@ const initScrollAnimations = () => {
   transform: translateX(-50%);
   color: var(--color-text-tertiary);
   opacity: 0.4;
-  animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(-8px); }
 }
 
 /* Feature Sections */
@@ -816,58 +680,7 @@ const initScrollAnimations = () => {
   opacity: 1;
 }
 
-/* Hover Microanimations */
-.hero-screenshot,
-.feature-screenshot {
-  transition: transform var(--transition-normal);
-}
 
-.hero-screenshot:hover,
-.feature-screenshot:hover {
-  transform: translateY(-4px);
-}
-
-.panel-wrapper {
-  transition: transform var(--transition-normal);
-}
-
-.panel-wrapper:hover {
-  transform: scale(1.02);
-}
-
-.feature-list li {
-  transition: color var(--transition-fast), transform var(--transition-fast);
-}
-
-.feature-list li:hover {
-  color: var(--color-text);
-  transform: translateX(4px);
-}
-
-.swatch {
-  transition: transform var(--transition-normal);
-  cursor: pointer;
-}
-
-.swatch:hover {
-  transform: scale(1.1);
-}
-
-/* Reduced Motion Support */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-
-  .scroll-indicator {
-    animation: none;
-  }
-}
 
 /* Mobile Responsive */
 @media (max-width: 768px) {

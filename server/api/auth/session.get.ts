@@ -5,11 +5,27 @@ import {
   getAuthMode,
   getCurrentUser,
   getCurrentUserDb,
+  getSystemRole,
+  getSystemRoleDb,
   getUserOrgMemberships,
   getUserOrgMembershipsDb,
   useDbAuth
 } from '~/server/utils/auth';
 import { getStore } from '~/server/utils/store';
+import { getOrgBillingSnapshotAuto } from '~/server/utils/billing';
+
+const getBillingSnapshotSafe = async (orgId: string | null, activeRole: string | null, useDb: boolean) => {
+  if (!orgId || !activeRole) {
+    return null;
+  }
+
+  try {
+    return await getOrgBillingSnapshotAuto(orgId, useDb);
+  } catch (error) {
+    console.warn('[auth/session] Failed to load billing snapshot. Returning session without billing context.', error);
+    return null;
+  }
+};
 
 export default defineEventHandler(async (event) => {
   const authMode = getAuthMode();
@@ -26,13 +42,16 @@ export default defineEventHandler(async (event) => {
       system_role: membership.system_role,
       is_active: membership.organization.id === activeOrgId
     }));
+    const activeRole = activeOrgId ? await getSystemRoleDb(activeOrgId, user.id) : null;
+    const billing = await getBillingSnapshotSafe(activeOrgId, activeRole, true);
 
     return {
       data: {
         user,
         auth_mode: authMode,
         active_org_id: activeOrgId,
-        organizations
+        organizations,
+        billing
       }
     };
   }
@@ -57,13 +76,16 @@ export default defineEventHandler(async (event) => {
       };
     })
     .filter((organization): organization is NonNullable<typeof organization> => !!organization);
+  const activeRole = activeOrgId ? getSystemRole(activeOrgId, user.id) : null;
+  const billing = await getBillingSnapshotSafe(activeOrgId, activeRole, false);
 
   return {
     data: {
       user,
       auth_mode: authMode,
       active_org_id: activeOrgId,
-      organizations
+      organizations,
+      billing
     }
   };
 });

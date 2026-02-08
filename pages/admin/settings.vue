@@ -241,33 +241,7 @@ onMounted(load);
         </div>
       </section>
 
-      <!-- Danger Zone Section -->
-      <section class="settings-section danger-section">
-        <UiSectionHeader label="danger zone" />
-
-        <div class="settings-card danger-card">
-          <div class="danger-item">
-            <div class="danger-content">
-              <h3 class="danger-title">Delete Organization</h3>
-              <p class="danger-description">
-                Permanently delete this organization and all associated data including projects, documents, and tasks.
-                This action cannot be undone.
-              </p>
-            </div>
-            <button
-              type="button"
-              class="button button--danger"
-              disabled
-              title="This feature is not yet implemented"
-            >
-              Delete Organization
-            </button>
-          </div>
-          <p class="danger-warning">
-            This feature is not yet implemented.
-          </p>
-        </div>
-      </section>
+      <!-- Danger actions are intentionally hidden until fully implemented -->
     </template>
   </div>
 </template>
@@ -302,6 +276,11 @@ onMounted(load);
 }
 
 .retry-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--color-text);
@@ -325,12 +304,12 @@ onMounted(load);
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   margin-bottom: var(--space-6);
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.2);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   font-family: var(--font-mono);
   font-size: 12px;
-  color: rgb(34, 197, 94);
+  color: var(--color-text-secondary);
 }
 
 .success-icon {
@@ -347,28 +326,33 @@ onMounted(load);
   gap: var(--space-4);
   padding: var(--space-3) var(--space-4);
   margin-bottom: var(--space-6);
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
   font-family: var(--font-mono);
   font-size: 12px;
-  color: rgb(239, 68, 68);
+  color: var(--color-text-secondary);
 }
 
 .error-dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   padding: var(--space-1) var(--space-2);
   background: transparent;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
   font-size: 11px;
-  color: rgb(239, 68, 68);
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: background var(--transition-fast);
 }
 
 .error-dismiss:hover {
-  background: rgba(239, 68, 68, 0.1);
+  background: var(--color-bg-hover);
 }
 
 /* Settings Section */
@@ -405,6 +389,8 @@ onMounted(load);
 .form-input {
   width: 100%;
   max-width: 400px;
+  min-height: 44px;
+  box-sizing: border-box;
   padding: var(--space-3);
   background: var(--color-bg-input);
   border: 1px solid var(--color-border);
@@ -412,7 +398,7 @@ onMounted(load);
   font-family: var(--font-body);
   font-size: 14px;
   color: var(--color-text);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color var(--transition-fast);
 }
 
 .form-input::placeholder {
@@ -422,15 +408,10 @@ onMounted(load);
 .form-input:focus {
   outline: none;
   border-color: var(--color-border-strong);
-  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb, 59, 130, 246), 0.1);
 }
 
 .form-input--error {
-  border-color: rgb(239, 68, 68);
-}
-
-.form-input--error:focus {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  border-color: var(--color-border-strong);
 }
 
 .form-hint {
@@ -444,7 +425,7 @@ onMounted(load);
   margin-top: var(--space-2);
   font-family: var(--font-mono);
   font-size: 11px;
-  color: rgb(239, 68, 68);
+  color: var(--color-text-secondary);
 }
 
 /* Slug Input */
@@ -452,6 +433,7 @@ onMounted(load);
   display: flex;
   align-items: center;
   max-width: 400px;
+  width: 100%;
 }
 
 .slug-prefix {
@@ -485,6 +467,8 @@ onMounted(load);
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
   font-family: var(--font-mono);
@@ -523,13 +507,13 @@ onMounted(load);
 }
 
 .button--danger {
-  background: rgba(239, 68, 68, 0.1);
-  color: rgb(239, 68, 68);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-strong);
 }
 
 .button--danger:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.2);
+  background: var(--color-bg-hover);
 }
 
 /* Button Spinner */
@@ -554,7 +538,7 @@ onMounted(load);
 }
 
 .danger-card {
-  border-color: rgba(239, 68, 68, 0.3);
+  border-color: var(--color-border-strong);
 }
 
 .danger-item {
@@ -565,6 +549,21 @@ onMounted(load);
 }
 
 @media (max-width: 600px) {
+  .slug-input-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .slug-prefix {
+    border-right: 1px solid var(--color-border);
+    border-bottom: none;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+
+  .slug-input {
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+  }
+
   .danger-item {
     flex-direction: column;
     align-items: stretch;
@@ -579,7 +578,7 @@ onMounted(load);
   font-family: var(--font-body);
   font-size: 14px;
   font-weight: 600;
-  color: rgb(239, 68, 68);
+  color: var(--color-text-secondary);
   margin: 0 0 var(--space-2);
 }
 

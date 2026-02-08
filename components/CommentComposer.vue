@@ -29,12 +29,15 @@ const emit = defineEmits<{
 const api = useWorkbenchApi();
 const isSubmitting = ref(false);
 const projectMembers = ref<User[]>([]);
+const errorMessage = ref('');
 
 // Fetch project members for @mention autocomplete
 onMounted(async () => {
   try {
-    const response = await api.get(`/api/projects/${props.projectId}/members`);
-    projectMembers.value = response.data.map((member: any) => member.user);
+    const response = await api.get<{ data: Array<{ user: User | null }> }>(`/api/projects/${props.projectId}/members`);
+    projectMembers.value = response.data
+      .map((member) => member.user)
+      .filter((member): member is User => Boolean(member));
   } catch (error) {
     console.error('Failed to fetch project members:', error);
   }
@@ -76,6 +79,7 @@ const handleSubmit = async () => {
   if (!editor.value || isEmpty.value || isSubmitting.value) return;
 
   isSubmitting.value = true;
+  errorMessage.value = '';
 
   try {
     const body = editor.value.getText();
@@ -95,7 +99,7 @@ const handleSubmit = async () => {
       };
     }
 
-    const response = await api.post('/api/comments', payload);
+    const response = await api.post<{ data: any }>('/api/comments', payload);
 
     emit('submitted', response.data);
 
@@ -103,7 +107,7 @@ const handleSubmit = async () => {
     editor.value.commands.clearContent();
   } catch (error) {
     console.error('Failed to create comment:', error);
-    alert('Failed to create comment. Please try again.');
+    errorMessage.value = 'Failed to create comment. Please try again.';
   } finally {
     isSubmitting.value = false;
   }
@@ -113,6 +117,7 @@ const handleCancel = () => {
   if (editor.value) {
     editor.value.commands.clearContent();
   }
+  errorMessage.value = '';
   emit('cancelled');
 };
 
@@ -153,6 +158,8 @@ onBeforeUnmount(() => {
         Cancel
       </button>
     </div>
+
+    <p v-if="errorMessage" class="message-error">{{ errorMessage }}</p>
   </div>
 </template>
 
@@ -174,8 +181,8 @@ onBeforeUnmount(() => {
 }
 
 .comment-editor:focus-within {
-  border-color: var(--color-primary);
-  outline: 1px solid var(--color-primary);
+  border-color: var(--color-border-strong);
+  outline: 1px solid var(--color-border-strong);
 }
 
 .comment-editor :deep(.comment-editor-content) {
@@ -213,12 +220,12 @@ onBeforeUnmount(() => {
 }
 
 .btn-primary {
-  background: var(--color-primary);
-  color: white;
+  background: var(--color-text);
+  color: var(--color-text-inverse);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--color-primary-hover);
+  opacity: 0.9;
 }
 
 .btn-primary:disabled {
@@ -239,5 +246,11 @@ onBeforeUnmount(() => {
 .btn-secondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.message-error {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-text-secondary);
 }
 </style>

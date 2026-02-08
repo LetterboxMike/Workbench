@@ -203,6 +203,11 @@ const switchOrg = async (orgId: string) => {
 }
 
 .wordmark {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-md);
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 500;
@@ -235,6 +240,8 @@ const switchOrg = async (orgId: string) => {
 }
 
 .org-select {
+  min-height: 44px;
+  min-width: 140px;
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--color-text-secondary);
@@ -256,8 +263,11 @@ const switchOrg = async (orgId: string) => {
 }
 
 .back-link {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   gap: var(--space-2);
   font-family: var(--font-mono);
   font-size: 12px;
@@ -282,8 +292,10 @@ const switchOrg = async (orgId: string) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border: none;
   border-radius: var(--radius-md);
   background: transparent;
@@ -303,6 +315,11 @@ const switchOrg = async (orgId: string) => {
 }
 
 .text-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--color-text-tertiary);
@@ -355,6 +372,7 @@ const switchOrg = async (orgId: string) => {
 .nav-item {
   display: flex;
   align-items: center;
+  min-height: 44px;
   gap: var(--space-2);
   margin: 0 var(--space-3);
   padding: 6px var(--space-3);
@@ -405,8 +423,32 @@ const switchOrg = async (orgId: string) => {
 
 /* Responsive */
 @media (max-width: 768px) {
+  .admin-body {
+    display: block;
+  }
+
   .admin-sidebar {
-    width: 200px;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .sidebar-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .nav-label {
+    display: none;
+  }
+
+  .nav-item {
+    margin: 0;
+    flex-shrink: 0;
   }
 
   .admin-content {

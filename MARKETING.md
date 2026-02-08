@@ -4,7 +4,7 @@
 
 The Workbench marketing website is a high-impact, animation-rich landing page built with Nuxt 3, GSAP, and authentic UI components from the design system.
 
-**Live at:** `http://localhost:3000` (development)
+**Live at:** `http://localhost:4000` (development)
 **Production:** `https://workbench.app` (when deployed)
 
 ---
@@ -284,7 +284,7 @@ scrub: 1  // Higher = slower parallax (try 2 or 3)
 
 ### Local Development
 ```bash
-npm run dev              # Start dev server (http://localhost:3000)
+npm run dev              # Start dev server (http://localhost:4000)
 ```
 
 ### Build for Production

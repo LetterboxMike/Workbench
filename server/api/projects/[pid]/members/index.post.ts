@@ -12,6 +12,7 @@ import { PROJECT_ROLES } from '~/server/utils/constants';
 import { ensureString, readJsonBody } from '~/server/utils/request';
 import { getStore } from '~/server/utils/store';
 import { db } from '~/server/utils/db';
+import { assertCanInviteOrgMemberAuto } from '~/server/utils/billing';
 
 interface InviteBody {
   email: string;
@@ -50,6 +51,7 @@ export default defineEventHandler(async (event) => {
       // Check if user is already in the org, if not add them
       const existingOrgMember = await db.orgMembers.get(project.org_id, existingUser.id);
       if (!existingOrgMember) {
+        await assertCanInviteOrgMemberAuto(project.org_id, true);
         await db.orgMembers.create({
           org_id: project.org_id,
           user_id: existingUser.id,
@@ -121,6 +123,8 @@ export default defineEventHandler(async (event) => {
       return { data: existingInvite };
     }
 
+    await assertCanInviteOrgMemberAuto(project.org_id, true);
+
     // Create new invitation
     const invitation = await db.invitations.create({
       org_id: project.org_id,
@@ -158,6 +162,7 @@ export default defineEventHandler(async (event) => {
 
   if (existingUser) {
     if (!store.org_members.some((member) => member.org_id === project.org_id && member.user_id === existingUser.id)) {
+      await assertCanInviteOrgMemberAuto(project.org_id, false);
       store.org_members.push({
         org_id: project.org_id,
         user_id: existingUser.id,
@@ -217,6 +222,8 @@ export default defineEventHandler(async (event) => {
       data: existingInvite
     };
   }
+
+  await assertCanInviteOrgMemberAuto(project.org_id, false);
 
   const invitation = {
     id: createId(),

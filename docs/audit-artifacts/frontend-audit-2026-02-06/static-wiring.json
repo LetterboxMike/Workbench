@@ -1,0 +1,443 @@
+{
+  "timestamp": "2026-02-07T00:32:17.309Z",
+  "frontendCallCount": 21,
+  "backendRouteCount": 56,
+  "frontendCalls": [
+    {
+      "method": "GET",
+      "rawMethod": "get",
+      "rawPath": "/api/auth/session",
+      "normalizedPath": "/api/auth/session",
+      "file": "pages/index.vue"
+    },
+    {
+      "method": "GET",
+      "rawMethod": "get",
+      "rawPath": "/api/auth/session",
+      "normalizedPath": "/api/auth/session",
+      "file": "pages/login.vue"
+    },
+    {
+      "method": "POST",
+      "rawMethod": "post",
+      "rawPath": "/api/auth/login",
+      "normalizedPath": "/api/auth/login",
+      "file": "pages/login.vue"
+    },
+    {
+      "method": "PATCH",
+      "rawMethod": "patch",
+      "rawPath": "/api/notifications/${id}/read",
+      "normalizedPath": "/api/notifications/:param/read",
+      "file": "pages/notifications.vue"
+    },
+    {
+      "method": "POST",
+      "rawMethod": "post",
+      "rawPath": "/api/notifications/read-all",
+      "normalizedPath": "/api/notifications/read-all",
+      "file": "pages/notifications.vue"
+    },
+    {
+      "method": "PATCH",
+      "rawMethod": "patch",
+      "rawPath": "/api/documents/${documentId.value}",
+      "normalizedPath": "/api/documents/:param",
+      "file": "pages/projects/[id]/documents/[docId].vue"
+    },
+    {
+      "method": "POST",
+      "rawMethod": "post",
+      "rawPath": "/api/projects/${projectId.value}/tasks",
+      "normalizedPath": "/api/projects/:param/tasks",
+      "file": "pages/projects/[id]/documents/[docId].vue"
+    },
+    {
+      "method": "PATCH",
+      "rawMethod": "patch",
+      "rawPath": "/api/tasks/${taskId}",
+      "normalizedPath": "/api/tasks/:param",
+      "file": "pages/projects/[id]/tasks/calendar.vue"
+    },
+    {
+      "method": "PATCH",
+      "rawMethod": "patch",
+      "rawPath": "/api/tasks/${taskId}",
+      "normalizedPath": "/api/tasks/:param",
+      "file": "pages/projects/[id]/tasks/kanban.vue"
+    },
+    {
+      "method": "POST",
+      "rawMethod": "post",
+      "rawPath": "/api/projects/${projectId.value}/tasks",
+      "normalizedPath": "/api/projects/:param/tasks",
+      "file": "pages/projects/[id]/tasks/kanban.vue"
+    },
+    {
+      "method": "POST",
+      "rawMethod": "post",
+      "rawPath": "/api/projects/${projectId.value}/tasks",
+      "normalizedPath": "/api/projects/:param/tasks",
+      "file": "pages/projects/[id]/tasks/list.vue"
+    },
+    {
+      "method": "PATCH",
+      "rawMethod": "patch",
+      "rawPath": "/api/tasks/${task.id}",
+      "normalizedPath": "/api/tasks/:param",
+      "file": "pages/projects/[id]/tasks/list.vue"
+    },
+    {
+      "method": "POST",
+      "rawMethod": "post",
+      "rawPath": "/api/projects/${projectId.value}/tasks/bulk",
+      "normalizedPath": "/api/projects/:param/tasks/bulk",
+      "file": "pages/projects/[id]/tasks/list.vue"
+    },
+    {
+      "method": "PATCH",
+      "rawMethod": "patch",
+      "rawPath": "/api/comments/${props.comment.id}",
+      "normalizedPath": "/api/comments/:param",
+      "file": "components/CommentThread.vue"
+    },
+    {
+      "method": "POST",
+      "rawMethod": "post",
+      "rawPath": "/api/comments/${props.comment.id}/resolve",
+      "normalizedPath": "/api/comments/:param/resolve",
+      "file": "components/CommentThread.vue"
+    },
+    {
+      "method": "DELETE",
+      "rawMethod": "del",
+      "rawPath": "/api/orgs/${props.orgId}/members/${props.member.user_id}",
+      "normalizedPath": "/api/orgs/:param/members/:param",
+      "file": "components/DeleteMemberModal.vue"
+    },
+    {
+      "method": "PUT",
+      "rawMethod": "put",
+      "rawPath": "/api/documents/${targetDocumentId}/content",
+      "normalizedPath": "/api/documents/:param/content",
+      "file": "components/DocumentEditor.vue"
+    },
+    {
+      "method": "PATCH",
+      "rawMethod": "patch",
+      "rawPath": "/api/orgs/${props.orgId}/members/${props.member.user_id}",
+      "normalizedPath": "/api/orgs/:param/members/:param",
+      "file": "components/EditMemberModal.vue"
+    },
+    {
+      "method": "POST",
+      "rawMethod": "post",
+      "rawPath": "/api/projects/${props.projectId}/members",
+      "normalizedPath": "/api/projects/:param/members",
+      "file": "components/ProjectMemberList.vue"
+    },
+    {
+      "method": "PATCH",
+      "rawMethod": "patch",
+      "rawPath": "/api/projects/${props.projectId}/members/${userId}",
+      "normalizedPath": "/api/projects/:param/members/:param",
+      "file": "components/ProjectMemberList.vue"
+    },
+    {
+      "method": "DELETE",
+      "rawMethod": "del",
+      "rawPath": "/api/projects/${props.projectId}/members/${userId}",
+      "normalizedPath": "/api/projects/:param/members/:param",
+      "file": "components/ProjectMemberList.vue"
+    }
+  ],
+  "serverRoutes": [
+    {
+      "method": "GET",
+      "path": "/activity",
+      "file": "server/api/activity/index.get.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/activity",
+      "file": "server/api/admin/activity.get.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/org",
+      "file": "server/api/admin/org.get.ts"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/org",
+      "file": "server/api/admin/org.patch.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/stats",
+      "file": "server/api/admin/stats.get.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/ai/chat",
+      "file": "server/api/ai/chat.post.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "file": "server/api/auth/login.post.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/logout",
+      "file": "server/api/auth/logout.post.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/me",
+      "file": "server/api/auth/me.get.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/redeem-magic-link",
+      "file": "server/api/auth/redeem-magic-link.post.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/session",
+      "file": "server/api/auth/session.get.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/signup",
+      "file": "server/api/auth/signup.post.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/switch-org",
+      "file": "server/api/auth/switch-org.post.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/comments",
+      "file": "server/api/comments/index.get.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/comments",
+      "file": "server/api/comments/index.post.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/comments/:id/convert-to-task",
+      "file": "server/api/comments/[id]/convert-to-task.post.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/comments/:id/resolve",
+      "file": "server/api/comments/[id]/resolve.post.ts"
+    },
+    {
+      "method": "DELETE",
+      "path": "/comments/:id",
+      "file": "server/api/comments/[id].delete.ts"
+    },
+    {
+      "method": "PATCH",
+      "path": "/comments/:id",
+      "file": "server/api/comments/[id].patch.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/documents/:id/content",
+      "file": "server/api/documents/[id]/content.get.ts"
+    },
+    {
+      "method": "PUT",
+      "path": "/documents/:id/content",
+      "file": "server/api/documents/[id]/content.put.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/documents/:id/export",
+      "file": "server/api/documents/[id]/export.post.ts"
+    },
+    {
+      "method": "DELETE",
+      "path": "/documents/:id",
+      "file": "server/api/documents/[id].delete.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/documents/:id",
+      "file": "server/api/documents/[id].get.ts"
+    },
+    {
+      "method": "PATCH",
+      "path": "/documents/:id",
+      "file": "server/api/documents/[id].patch.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/notifications",
+      "file": "server/api/notifications/index.get.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/notifications/read-all",
+      "file": "server/api/notifications/read-all.post.ts"
+    },
+    {
+      "method": "PATCH",
+      "path": "/notifications/:id/read",
+      "file": "server/api/notifications/[id]/read.patch.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/orgs",
+      "file": "server/api/orgs/index.get.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/orgs",
+      "file": "server/api/orgs/index.post.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/orgs/:id/members",
+      "file": "server/api/orgs/[id]/members/index.get.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/orgs/:id/members/invite",
+      "file": "server/api/orgs/[id]/members/invite.post.ts"
+    },
+    {
+      "method": "DELETE",
+      "path": "/orgs/:id/members/:uid",
+      "file": "server/api/orgs/[id]/members/[uid].delete.ts"
+    },
+    {
+      "method": "PATCH",
+      "path": "/orgs/:id/members/:uid",
+      "file": "server/api/orgs/[id]/members/[uid].patch.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/projects",
+      "file": "server/api/projects/index.get.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/projects",
+      "file": "server/api/projects/index.post.ts"
+    },
+    {
+      "method": "DELETE",
+      "path": "/projects/:id",
+      "file": "server/api/projects/[id].delete.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/projects/:id",
+      "file": "server/api/projects/[id].get.ts"
+    },
+    {
+      "method": "PATCH",
+      "path": "/projects/:id",
+      "file": "server/api/projects/[id].patch.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/projects/:pid/activity",
+      "file": "server/api/projects/[pid]/activity.get.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/projects/:pid/documents/export",
+      "file": "server/api/projects/[pid]/documents/export.post.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/projects/:pid/documents",
+      "file": "server/api/projects/[pid]/documents/index.get.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/projects/:pid/documents",
+      "file": "server/api/projects/[pid]/documents/index.post.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/projects/:pid/invitations",
+      "file": "server/api/projects/[pid]/invitations/index.get.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/projects/:pid/members",
+      "file": "server/api/projects/[pid]/members/index.get.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/projects/:pid/members",
+      "file": "server/api/projects/[pid]/members/index.post.ts"
+    },
+    {
+      "method": "DELETE",
+      "path": "/projects/:pid/members/:uid",
+      "file": "server/api/projects/[pid]/members/[uid].delete.ts"
+    },
+    {
+      "method": "PATCH",
+      "path": "/projects/:pid/members/:uid",
+      "file": "server/api/projects/[pid]/members/[uid].patch.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/projects/:pid/tasks/bulk",
+      "file": "server/api/projects/[pid]/tasks/bulk.post.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/projects/:pid/tasks",
+      "file": "server/api/projects/[pid]/tasks/index.get.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/projects/:pid/tasks",
+      "file": "server/api/projects/[pid]/tasks/index.post.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/search",
+      "file": "server/api/search/index.get.ts"
+    },
+    {
+      "method": "DELETE",
+      "path": "/tasks/:id",
+      "file": "server/api/tasks/[id].delete.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/:id",
+      "file": "server/api/tasks/[id].get.ts"
+    },
+    {
+      "method": "PATCH",
+      "path": "/tasks/:id",
+      "file": "server/api/tasks/[id].patch.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/uploads",
+      "file": "server/api/uploads/index.post.ts"
+    }
+  ],
+  "unresolvedCalls": [],
+  "deleteWrapperMisuse": [],
+  "componentRegistrationChecks": {
+    "hasPrimaryButton": true,
+    "hasInputField": true,
+    "checkedFile": ".nuxt/components.d.ts"
+  }
+}

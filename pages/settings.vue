@@ -4,16 +4,35 @@ const loading = ref(true);
 const user = ref<{
   id: string;
   email: string;
-  display_name?: string | null;
-  role?: string;
+  name?: string;
+  display_name?: string;
 } | null>(null);
+const role = ref('member');
+const themePreference = ref('system');
+const emailNotifications = ref(true);
+const defaultView = ref('list');
 
 const load = async () => {
   loading.value = true;
 
   try {
-    const response = await api.get<{ user: typeof user.value }>('/api/auth/me');
-    user.value = response.user;
+    const response = await api.get<{
+      data: {
+        user: {
+          id: string;
+          email: string;
+          name?: string;
+          display_name?: string;
+        };
+        active_org_id: string | null;
+        organizations: Array<{ id: string; system_role: string }>;
+      };
+    }>('/api/auth/session');
+
+    user.value = response.data.user;
+    role.value =
+      response.data.organizations.find((org) => org.id === response.data.active_org_id)?.system_role ||
+      'member';
   } finally {
     loading.value = false;
   }
@@ -45,13 +64,13 @@ onMounted(load);
         <div class="setting-row">
           <div class="setting-info">
             <span class="setting-label">Display Name</span>
-            <span class="setting-value">{{ user?.display_name || 'Not set' }}</span>
+            <span class="setting-value">{{ user?.display_name || user?.name || 'Not set' }}</span>
           </div>
         </div>
         <div class="setting-row">
           <div class="setting-info">
             <span class="setting-label">Role</span>
-            <span class="setting-value">{{ user?.role || 'member' }}</span>
+            <span class="setting-value">{{ role }}</span>
           </div>
         </div>
       </article>
@@ -60,21 +79,27 @@ onMounted(load);
         <h2>Preferences</h2>
         <div class="setting-row">
           <div class="setting-info">
-            <span class="setting-label">Theme</span>
+            <label class="setting-label" for="theme-select">Theme</label>
             <span class="setting-description">Choose your interface theme</span>
           </div>
-          <select class="setting-control">
-            <option>System</option>
-            <option>Light</option>
-            <option>Dark</option>
+          <select id="theme-select" v-model="themePreference" class="setting-control" aria-label="Theme preference">
+            <option value="system">System</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
           </select>
         </div>
         <div class="setting-row">
           <div class="setting-info">
-            <span class="setting-label">Notifications</span>
+            <label class="setting-label" for="notifications-toggle">Notifications</label>
             <span class="setting-description">Receive email notifications for updates</span>
           </div>
-          <input type="checkbox" class="setting-control" checked>
+          <input
+            id="notifications-toggle"
+            v-model="emailNotifications"
+            type="checkbox"
+            class="setting-control"
+            aria-label="Enable email notifications"
+          >
         </div>
       </article>
 
@@ -82,13 +107,18 @@ onMounted(load);
         <h2>Workspace</h2>
         <div class="setting-row">
           <div class="setting-info">
-            <span class="setting-label">Default View</span>
+            <label class="setting-label" for="default-view-select">Default View</label>
             <span class="setting-description">Your preferred task view</span>
           </div>
-          <select class="setting-control">
-            <option>List</option>
-            <option>Kanban</option>
-            <option>Calendar</option>
+          <select
+            id="default-view-select"
+            v-model="defaultView"
+            class="setting-control"
+            aria-label="Default task view"
+          >
+            <option value="list">List</option>
+            <option value="kanban">Kanban</option>
+            <option value="calendar">Calendar</option>
           </select>
         </div>
       </article>
@@ -191,6 +221,9 @@ section > p {
 }
 
 .setting-control {
+  min-height: 44px;
+  min-width: 44px;
+  box-sizing: border-box;
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 500;
@@ -213,8 +246,10 @@ select.setting-control {
 }
 
 input[type="checkbox"].setting-control {
-  width: 20px;
-  height: 20px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: var(--radius-sm);
   cursor: pointer;
 }
 </style>

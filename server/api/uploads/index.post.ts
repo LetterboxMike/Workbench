@@ -2,8 +2,15 @@ import { createError, defineEventHandler, readMultipartFormData } from 'h3';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
-import { getCurrentUser, getCurrentUserDb, useDbAuth } from '~/server/utils/auth';
+import {
+  getActiveOrgIdForUser,
+  getActiveOrgIdForUserDb,
+  getCurrentUser,
+  getCurrentUserDb,
+  useDbAuth
+} from '~/server/utils/auth';
 import { createId } from '~/server/utils/id';
+import { assertCanUploadFileAuto, recordUploadUsageAuto } from '~/server/utils/billing';
 
 const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads');
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -22,12 +29,19 @@ const ALLOWED_MIME_TYPES = [
 
 export default defineEventHandler(async (event) => {
   const useDb = useDbAuth();
+  let orgId: string | null = null;
 
   // Authenticate user
   if (useDb) {
-    await getCurrentUserDb(event);
+    const user = await getCurrentUserDb(event);
+    orgId = await getActiveOrgIdForUserDb(event, user.id);
   } else {
-    await getCurrentUser(event);
+    const user = await getCurrentUser(event);
+    orgId = getActiveOrgIdForUser(event, user.id);
+  }
+
+  if (!orgId) {
+    throw createError({ statusCode: 400, statusMessage: 'No active organization selected.' });
   }
 
   // Ensure upload directory exists
@@ -58,6 +72,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'File type not allowed.' });
   }
 
+  await assertCanUploadFileAuto(orgId, useDb, file.data.length);
+
   // Generate unique filename
   const originalName = file.filename || 'file';
   const ext = originalName.split('.').pop() || '';
@@ -66,6 +82,7 @@ export default defineEventHandler(async (event) => {
 
   // Save file
   await writeFile(filePath, file.data);
+  await recordUploadUsageAuto(orgId, useDb, file.data.length);
 
   // Return file URL
   return {

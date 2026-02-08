@@ -13,6 +13,7 @@ import { createId, nowIso } from '~/server/utils/id';
 import { ensureString, readJsonBody } from '~/server/utils/request';
 import { getStore } from '~/server/utils/store';
 import { db } from '~/server/utils/db';
+import { assertCanCreateTaskAuto } from '~/server/utils/billing';
 import type { Task, TaskPriority, TaskStatus } from '~/types/domain';
 
 interface ConvertToTaskBody {
@@ -23,6 +24,21 @@ interface ConvertToTaskBody {
   assignee_id?: string | null;
   due_date?: string | null;
 }
+
+const buildTaskDescription = (commentBody: string, projectId: string, commentId: string, draftDescription?: string): string => {
+  const backlink = `Converted from comment: /projects/${projectId}#comment-${commentId}`;
+  const trimmed = draftDescription?.trim();
+
+  if (!trimmed) {
+    return `${commentBody}\n\n---\n\n${backlink}`;
+  }
+
+  if (trimmed.includes(backlink)) {
+    return trimmed;
+  }
+
+  return `${trimmed}\n\n---\n\n${backlink}`;
+};
 
 export default defineEventHandler(async (event) => {
   const useDb = useDbAuth();
@@ -64,6 +80,8 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 404, statusMessage: 'Project not found.' });
     }
 
+    await assertCanCreateTaskAuto(project.org_id, projectId, true);
+
     // Validate assignee_id
     if (body.assignee_id) {
       const projectMember = await db.projectMembers.get(projectId, body.assignee_id);
@@ -83,9 +101,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Build task description with backlink to comment
-    const taskDescription =
-      body.description ||
-      `${comment.body}\n\n---\n\nConverted from comment: /projects/${projectId}#comment-${comment.id}`;
+    const taskDescription = buildTaskDescription(comment.body, projectId, comment.id, body.description);
 
     // Create the task
     const task = await db.tasks.create({
@@ -152,6 +168,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Project not found.' });
   }
 
+  await assertCanCreateTaskAuto(project.org_id, projectId, false);
+
   // Validate assignee_id
   if (body.assignee_id) {
     const projectMember = store.project_members.find(
@@ -173,9 +191,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Build task description with backlink to comment
-  const taskDescription =
-    body.description ||
-    `${comment.body}\n\n---\n\nConverted from comment: /projects/${projectId}#comment-${comment.id}`;
+  const taskDescription = buildTaskDescription(comment.body, projectId, comment.id, body.description);
 
   // Create the task
   const task: Task = {

@@ -10,7 +10,7 @@ Workbench is a Nuxt 3 project management and collaboration platform (internal Ba
 
 ```bash
 npm install          # Install dependencies
-npm run dev          # Start development server (http://localhost:3000)
+npm run dev          # Start development server (http://localhost:4000)
 npm run build        # Build for production
 npm run preview      # Preview production build
 npm run typecheck    # TypeScript type checking

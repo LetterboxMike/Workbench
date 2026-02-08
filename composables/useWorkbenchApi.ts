@@ -10,7 +10,7 @@ const isUnauthorized = (error: unknown): boolean => {
 };
 
 export const useWorkbenchApi = () => {
-  const request = async <T>(url: NitroFetchRequest, options: NitroFetchOptions<NitroFetchRequest> & { skipAuthRedirect?: boolean } = {}) => {
+  const request = async <T = any>(url: NitroFetchRequest, options: NitroFetchOptions<NitroFetchRequest> & { skipAuthRedirect?: boolean } = {}) => {
     const forwardedHeaders = import.meta.server ? useRequestHeaders(['cookie']) : {};
     const { skipAuthRedirect, ...fetchOptions } = options;
 
@@ -34,14 +34,17 @@ export const useWorkbenchApi = () => {
     }
   };
 
+  type ApiOptions = NitroFetchOptions<NitroFetchRequest> & { skipAuthRedirect?: boolean };
+
   return {
-    get: <T>(url: NitroFetchRequest, options: NitroFetchOptions<NitroFetchRequest> = {}) => request<T>(url, { ...options, method: 'GET' }),
-    post: <T>(url: NitroFetchRequest, body?: NitroFetchOptions<NitroFetchRequest>['body'], options: NitroFetchOptions<NitroFetchRequest> = {}) =>
+    get: <T = any>(url: NitroFetchRequest, options: ApiOptions = {}) => request<T>(url, { ...options, method: 'GET' }),
+    post: <T = any>(url: NitroFetchRequest, body?: NitroFetchOptions<NitroFetchRequest>['body'], options: ApiOptions = {}) =>
       request<T>(url, { ...options, method: 'POST', body }),
-    patch: <T>(url: NitroFetchRequest, body?: NitroFetchOptions<NitroFetchRequest>['body'], options: NitroFetchOptions<NitroFetchRequest> = {}) =>
+    patch: <T = any>(url: NitroFetchRequest, body?: NitroFetchOptions<NitroFetchRequest>['body'], options: ApiOptions = {}) =>
       request<T>(url, { ...options, method: 'PATCH', body }),
-    put: <T>(url: NitroFetchRequest, body?: NitroFetchOptions<NitroFetchRequest>['body'], options: NitroFetchOptions<NitroFetchRequest> = {}) =>
+    put: <T = any>(url: NitroFetchRequest, body?: NitroFetchOptions<NitroFetchRequest>['body'], options: ApiOptions = {}) =>
       request<T>(url, { ...options, method: 'PUT', body }),
-    del: <T>(url: NitroFetchRequest, options: NitroFetchOptions<NitroFetchRequest> = {}) => request<T>(url, { ...options, method: 'DELETE' })
+    del: <T = any>(url: NitroFetchRequest, options: ApiOptions = {}) => request<T>(url, { ...options, method: 'DELETE' }),
+    delete: <T = any>(url: NitroFetchRequest, options: ApiOptions = {}) => request<T>(url, { ...options, method: 'DELETE' })
   };
 };

@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-02-06T09:36:54.590Z",
+  "clicked": true,
+  "calls": [
+    {
+      "method": "PATCH",
+      "status": 200,
+      "url": "http://127.0.0.1:4311/api/orgs/8f657dc3-3e04-4e44-a2df-7f9fbf8f7301/members/5cf4fca2-5686-4f94-8c7a-4fc6e575adff"
+    }
+  ]
+}

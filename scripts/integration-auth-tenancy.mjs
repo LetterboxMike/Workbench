@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { setTimeout as sleep } from 'node:timers/promises';
+import puppeteer from 'puppeteer';
 
 const PORT = Number(process.env.WORKBENCH_TEST_PORT || 4300 + Math.floor(Math.random() * 900));
 const BASE_URL = `http://127.0.0.1:${PORT}`;
@@ -94,8 +95,28 @@ const createClient = () => {
   return {
     get: (path, options = {}) => request(path, { ...options, method: 'GET' }),
     post: (path, body, options = {}) => request(path, { ...options, method: 'POST', body }),
-    patch: (path, body, options = {}) => request(path, { ...options, method: 'PATCH', body })
+    patch: (path, body, options = {}) => request(path, { ...options, method: 'PATCH', body }),
+    cookieObjects: () =>
+      Array.from(cookies.entries()).map(([name, value]) => ({
+        name,
+        value,
+        url: BASE_URL
+      }))
   };
+};
+
+const clickButtonByText = async (page, text) => {
+  const clicked = await page.evaluate((targetText) => {
+    const buttons = Array.from(document.querySelectorAll('button'));
+    const candidate = buttons.find((button) => (button.textContent || '').trim().toLowerCase() === targetText.toLowerCase());
+    if (!candidate) {
+      return false;
+    }
+    candidate.click();
+    return true;
+  }, text);
+
+  return clicked;
 };
 
 const waitForServer = async () => {
@@ -198,6 +219,140 @@ const runScenario = async () => {
   assert.ok(Array.isArray(activityForOwner?.data), 'owner activity should return array');
 };
 
+const runCommentConvertScenario = async () => {
+  const client = createClient();
+  const runId = Date.now().toString(36);
+  const email = `comment-e2e-${runId}@workbench-integration.test`;
+  const password = 'Password123!';
+
+  await client.post('/api/auth/signup', {
+    name: 'Comment E2E User',
+    email,
+    password
+  });
+
+  const projectResponse = await client.post('/api/projects', {
+    name: `Comment Convert ${runId}`
+  });
+  const projectId = projectResponse?.data?.id;
+  assert.ok(projectId, 'comment convert scenario should create a project');
+
+  const documentResponse = await client.post(`/api/projects/${projectId}/documents`, {
+    title: `Comment Convert Doc ${runId}`
+  });
+  const documentId = documentResponse?.data?.id;
+  assert.ok(documentId, 'comment convert scenario should create a document');
+
+  const commentBody = `Comment convert seed ${runId}`;
+  const commentResponse = await client.post('/api/comments', {
+    target_type: 'document',
+    target_id: documentId,
+    parent_comment_id: null,
+    body: commentBody
+  });
+  const commentId = commentResponse?.data?.id;
+  assert.ok(commentId, 'comment convert scenario should create a comment');
+
+  const browser = await puppeteer.launch({ headless: true });
+
+  try {
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1280, height: 900 });
+    await page.setCookie(...client.cookieObjects());
+    await page.goto(buildUrl(`/projects/${projectId}/documents/${documentId}`), {
+      waitUntil: 'domcontentloaded',
+      timeout: 20000
+    });
+
+    await page.waitForSelector('.toolbar', { timeout: 10000 });
+    const openedComments = await page.evaluate(() => {
+      const buttons = Array.from(document.querySelectorAll('button'));
+      const commentsButton = buttons.find((button) => {
+        const text = (button.textContent || '').trim().toLowerCase();
+        return text.endsWith('comments');
+      });
+
+      if (!commentsButton) {
+        return false;
+      }
+
+      commentsButton.click();
+      return true;
+    });
+    assert.ok(openedComments, 'should open comments sidebar from toolbar');
+    await page.waitForSelector('.comment-sidebar', { timeout: 10000 });
+
+    await page.waitForFunction(
+      () => {
+        const buttons = Array.from(document.querySelectorAll('button'));
+        return buttons.some((button) => (button.textContent || '').toLowerCase().includes('convert to task'));
+      },
+      { timeout: 10000 }
+    );
+
+    const openedConvertModal = await page.evaluate(() => {
+      const buttons = Array.from(document.querySelectorAll('button'));
+      const convertButton = buttons.find((button) =>
+        (button.textContent || '').trim().toLowerCase().includes('convert to task')
+      );
+
+      if (!convertButton) {
+        return false;
+      }
+
+      convertButton.click();
+      return true;
+    });
+    assert.ok(openedConvertModal, 'should open convert-to-task modal');
+
+    await page.waitForSelector('#task-title', { timeout: 10000 });
+    await page.$eval('#task-title', (input) => {
+      input.value = '';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    const createDisabledWhenEmpty = await page.$eval('.modal-footer .btn.btn-primary', (button) =>
+      button.hasAttribute('disabled')
+    );
+    assert.equal(createDisabledWhenEmpty, true, 'Create task button must be disabled when title is empty');
+
+    const specialTitle = `Comment Convert ${runId} ${'X'.repeat(120)} <> & ' \" /`;
+    await page.type('#task-title', specialTitle);
+
+    const convertResponsePromise = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'POST' &&
+        response.url().includes(`/api/comments/${commentId}/convert-to-task`),
+      { timeout: 15000 }
+    );
+
+    const clickedCreate = await clickButtonByText(page, 'Create Task');
+    assert.ok(clickedCreate, 'should submit convert-to-task modal');
+
+    const convertResponse = await convertResponsePromise;
+    assert.ok(convertResponse.status() < 400, `convert-to-task should succeed, got ${convertResponse.status()}`);
+  } finally {
+    await browser.close();
+  }
+
+  const taskList = await client.get(`/api/projects/${projectId}/tasks`);
+  const createdTask = taskList?.data?.find((task) => task.title.includes(`Comment Convert ${runId}`));
+  assert.ok(createdTask, 'converted task should exist in project task list');
+  assert.equal(createdTask.source_document_id, documentId, 'converted task should preserve source document link');
+  assert.ok(
+    String(createdTask.description || '').includes(`#comment-${commentId}`),
+    'converted task description should include backlink to source comment'
+  );
+
+  const commentsResponse = await client.get(`/api/comments?target_type=document&target_id=${documentId}`);
+  const convertedComment = commentsResponse?.data?.find((comment) => comment.id === commentId);
+  assert.equal(
+    convertedComment?.metadata?.converted_to_task_id,
+    createdTask.id,
+    'comment metadata should store converted task id'
+  );
+};
+
 const startServer = () => {
   const child = spawn('node', ['.output/server/index.mjs'], {
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -258,6 +413,7 @@ const main = async () => {
   try {
     await waitForServer();
     await runScenario();
+    await runCommentConvertScenario();
     console.log('\nIntegration auth/tenant scenario passed.');
   } finally {
     await stopServer(server);

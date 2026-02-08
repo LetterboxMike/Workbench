@@ -97,36 +97,20 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue';
+
 const showTyping1 = ref(true);
 const showTyping2 = ref(false);
 const showMessage3 = ref(false);
 const showMessage4 = ref(false);
 
-// Animated conversation sequence
+// Static conversation sequence
 onMounted(() => {
-  // Show first typing indicator immediately
-  showTyping1.value = true;
-
-  // After 1.5s, hide typing and show assistant response
-  setTimeout(() => {
-    showTyping1.value = false;
-  }, 1500);
-
-  // After 2s, show second user message
-  setTimeout(() => {
-    showMessage3.value = true;
-  }, 2500);
-
-  // After 3s, show second typing indicator
-  setTimeout(() => {
-    showTyping2.value = true;
-  }, 3500);
-
-  // After 5s, hide typing and show final assistant message
-  setTimeout(() => {
-    showTyping2.value = false;
-    showMessage4.value = true;
-  }, 5000);
+  // Show all messages without animation
+  showTyping1.value = false;
+  showMessage3.value = true;
+  showTyping2.value = false;
+  showMessage4.value = true;
 });
 </script>
 

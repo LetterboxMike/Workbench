@@ -1,201 +1,100 @@
 <template>
   <div class="screenshot-task-list">
-    <!-- Table Header -->
+    <!-- Simplified Header -->
     <div class="task-list-header">
-      <div class="header-cell col-checkbox"></div>
       <div class="header-cell col-task">task</div>
       <div class="header-cell col-status">status</div>
-      <div class="header-cell col-priority">priority</div>
       <div class="header-cell col-assignee">assignee</div>
       <div class="header-cell col-due">due date</div>
-      <div class="header-cell col-source">source</div>
     </div>
 
-    <!-- Task Rows -->
+    <!-- Task Rows - Simplified and Larger -->
     <div class="task-list-body">
-      <!-- Task 1 -->
-      <div class="task-row">
-        <div class="cell col-checkbox">
-          <input type="checkbox" class="task-checkbox" />
-        </div>
+      <!-- Task 1 - High Priority -->
+      <div class="task-row priority-high">
         <div class="cell col-task">
           <div class="task-title-row">
-            <PriorityDot priority="urgent" />
+            <div class="priority-indicator urgent"></div>
             <span class="task-title">Design hero section mockups</span>
           </div>
         </div>
         <div class="cell col-status">
           <StatusLabel status="in_progress" />
         </div>
-        <div class="cell col-priority">
-          <span class="priority-text">urgent</span>
-        </div>
         <div class="cell col-assignee">
           <div class="assignee">
-            <div class="avatar">S</div>
-            <span>Sarah</span>
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" alt="Sarah" class="avatar" />
+            <span class="assignee-name">Sarah</span>
           </div>
         </div>
         <div class="cell col-due">
           <span class="due-date urgent">Mar 15</span>
         </div>
-        <div class="cell col-source">
-          <span class="source-doc">Website Redesign</span>
-        </div>
       </div>
 
-      <!-- Task 2 -->
-      <div class="task-row">
-        <div class="cell col-checkbox">
-          <input type="checkbox" class="task-checkbox" checked />
-        </div>
+      <!-- Task 2 - Completed -->
+      <div class="task-row completed">
         <div class="cell col-task">
           <div class="task-title-row">
-            <PriorityDot priority="medium" />
-            <span class="task-title completed">Set up staging environment</span>
+            <div class="priority-indicator medium"></div>
+            <span class="task-title">Set up staging environment</span>
           </div>
         </div>
         <div class="cell col-status">
           <StatusLabel status="done" />
         </div>
-        <div class="cell col-priority">
-          <span class="priority-text">medium</span>
-        </div>
         <div class="cell col-assignee">
           <div class="assignee">
-            <div class="avatar">J</div>
-            <span>Jake</span>
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jake" alt="Jake" class="avatar" />
+            <span class="assignee-name">Jake</span>
           </div>
         </div>
         <div class="cell col-due">
           <span class="due-date done">Mar 12</span>
         </div>
-        <div class="cell col-source">
-          <span class="source-doc">API v2 Migration</span>
-        </div>
       </div>
 
       <!-- Task 3 -->
       <div class="task-row">
-        <div class="cell col-checkbox">
-          <input type="checkbox" class="task-checkbox" />
-        </div>
         <div class="cell col-task">
           <div class="task-title-row">
-            <PriorityDot priority="high" />
+            <div class="priority-indicator high"></div>
             <span class="task-title">Write content for about page</span>
           </div>
         </div>
         <div class="cell col-status">
           <StatusLabel status="todo" />
         </div>
-        <div class="cell col-priority">
-          <span class="priority-text">high</span>
-        </div>
         <div class="cell col-assignee">
           <div class="assignee">
-            <div class="avatar">M</div>
-            <span>Michael</span>
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Michael" alt="Michael" class="avatar" />
+            <span class="assignee-name">Michael</span>
           </div>
         </div>
         <div class="cell col-due">
           <span class="due-date">Mar 20</span>
         </div>
-        <div class="cell col-source">
-          <span class="source-doc">Website Redesign</span>
-        </div>
       </div>
 
       <!-- Task 4 -->
       <div class="task-row">
-        <div class="cell col-checkbox">
-          <input type="checkbox" class="task-checkbox" />
-        </div>
         <div class="cell col-task">
           <div class="task-title-row">
-            <PriorityDot priority="high" />
+            <div class="priority-indicator high"></div>
             <span class="task-title">Migrate user authentication endpoints</span>
           </div>
         </div>
         <div class="cell col-status">
           <StatusLabel status="in_review" />
         </div>
-        <div class="cell col-priority">
-          <span class="priority-text">high</span>
-        </div>
         <div class="cell col-assignee">
           <div class="assignee">
-            <div class="avatar">J</div>
-            <span>Jake</span>
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jake" alt="Jake" class="avatar" />
+            <span class="assignee-name">Jake</span>
           </div>
         </div>
         <div class="cell col-due">
           <span class="due-date">Mar 18</span>
-        </div>
-        <div class="cell col-source">
-          <span class="source-doc">API v2 Migration</span>
-        </div>
-      </div>
-
-      <!-- Task 5 -->
-      <div class="task-row">
-        <div class="cell col-checkbox">
-          <input type="checkbox" class="task-checkbox" />
-        </div>
-        <div class="cell col-task">
-          <div class="task-title-row">
-            <PriorityDot priority="medium" />
-            <span class="task-title">Conduct user testing sessions</span>
-          </div>
-        </div>
-        <div class="cell col-status">
-          <StatusLabel status="backlog" />
-        </div>
-        <div class="cell col-priority">
-          <span class="priority-text">medium</span>
-        </div>
-        <div class="cell col-assignee">
-          <div class="assignee">
-            <div class="avatar">S</div>
-            <span>Sarah</span>
-          </div>
-        </div>
-        <div class="cell col-due">
-          <span class="due-date">Mar 25</span>
-        </div>
-        <div class="cell col-source">
-          <span class="source-doc">Product Brief</span>
-        </div>
-      </div>
-
-      <!-- Task 6 -->
-      <div class="task-row">
-        <div class="cell col-checkbox">
-          <input type="checkbox" class="task-checkbox" />
-        </div>
-        <div class="cell col-task">
-          <div class="task-title-row">
-            <PriorityDot priority="low" />
-            <span class="task-title">Update documentation for v2 API</span>
-          </div>
-        </div>
-        <div class="cell col-status">
-          <StatusLabel status="todo" />
-        </div>
-        <div class="cell col-priority">
-          <span class="priority-text">low</span>
-        </div>
-        <div class="cell col-assignee">
-          <div class="assignee">
-            <div class="avatar">M</div>
-            <span>Michael</span>
-          </div>
-        </div>
-        <div class="cell col-due">
-          <span class="due-date">Mar 22</span>
-        </div>
-        <div class="cell col-source">
-          <span class="source-doc">API v2 Migration</span>
         </div>
       </div>
     </div>
@@ -203,39 +102,44 @@
 </template>
 
 <script setup lang="ts">
-// This is a static screenshot component showing the task list view
+import StatusLabel from '~/components/ui/StatusLabel.vue';
+// Static task list screenshot - simplified for hero section
 </script>
 
 <style scoped>
 .screenshot-task-list {
   width: 100%;
+  max-width: 900px;
   background: var(--color-bg-elevated);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
 }
 
-/* Header */
+/* Header - Simplified and Larger */
 .task-list-header {
   display: grid;
-  grid-template-columns: 40px 2fr 120px 100px 120px 100px 140px;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
+  grid-template-columns: 3fr 1.2fr 1.3fr 0.9fr;
+  gap: var(--space-6);
+  padding: var(--space-5) var(--space-6);
   background: var(--color-bg-surface);
   border-bottom: 1px solid var(--color-border);
+  align-items: center;
 }
 
 .header-cell {
   font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 300;
+  font-size: 11px;
+  font-weight: 500;
   color: var(--color-text-tertiary);
   text-transform: lowercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  padding: 0;
 }
 
-/* Body */
+/* Body - More Spacious */
 .task-list-body {
   display: flex;
   flex-direction: column;
@@ -243,12 +147,13 @@
 
 .task-row {
   display: grid;
-  grid-template-columns: 40px 2fr 120px 100px 120px 100px 140px;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
+  grid-template-columns: 3fr 1.2fr 1.3fr 0.9fr;
+  gap: var(--space-6);
+  padding: var(--space-5) var(--space-6);
   border-bottom: 1px solid var(--color-border);
   transition: background var(--transition-fast);
   align-items: center;
+  min-height: 68px;
 }
 
 .task-row:hover {
@@ -259,121 +164,161 @@
   border-bottom: none;
 }
 
+/* Completed task styling */
+.task-row.completed {
+  opacity: 0.6;
+}
+
+.task-row.completed .task-title {
+  text-decoration: line-through;
+  color: var(--color-text-secondary);
+}
+
 .cell {
   display: flex;
   align-items: center;
+  padding: 0;
+  height: 100%;
 }
 
-/* Checkbox */
-.col-checkbox {
-  justify-content: center;
+/* Task Title - Larger and More Prominent */
+.col-task {
+  justify-content: flex-start;
 }
 
-.task-checkbox {
-  width: 16px;
-  height: 16px;
-  border-radius: var(--radius-xs);
-  border: 1.5px solid var(--color-text-secondary);
-  cursor: pointer;
-}
-
-.task-checkbox:checked {
-  background: var(--color-text-tertiary);
-  border-color: var(--color-text-tertiary);
-}
-
-/* Task Title */
 .task-title-row {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
+}
+
+.priority-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.priority-indicator.urgent {
+  background: var(--color-priority-urgent);
+}
+
+.priority-indicator.high {
+  background: var(--color-priority-high);
+}
+
+.priority-indicator.medium {
+  background: var(--color-priority-medium);
 }
 
 .task-title {
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--color-text);
+  line-height: 1.5;
 }
 
-.task-title.completed {
-  text-decoration: line-through;
-  color: var(--color-text-tertiary);
+/* Status */
+.col-status {
+  justify-content: flex-start;
 }
 
-/* Priority Text */
-.priority-text {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--color-text-secondary);
-  text-transform: lowercase;
+/* Assignee - Larger Avatar and Text */
+.col-assignee {
+  justify-content: flex-start;
 }
 
-/* Assignee */
 .assignee {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--color-text-secondary);
+  gap: var(--space-3);
 }
 
 .avatar {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-full);
-  background: var(--color-bg-active);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--color-text);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-bg);
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
-/* Due Date */
+.assignee-name {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+/* Due Date - More Prominent */
+.col-due {
+  justify-content: flex-start;
+}
+
 .due-date {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--color-text-tertiary);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
 }
 
 .due-date.urgent {
-  color: var(--color-text);
-  font-weight: 500;
+  color: var(--color-priority-urgent);
+  background: var(--color-bg-surface);
 }
 
 .due-date.done {
   text-decoration: line-through;
+  opacity: 0.5;
 }
 
-/* Source */
-.source-doc {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--color-text-tertiary);
-}
-
-/* Mobile - simplified view */
+/* Mobile - Simplified View */
 @media (max-width: 768px) {
-  .task-list-header,
-  .task-row {
-    grid-template-columns: 40px 1fr 80px;
-    gap: var(--space-2);
+  .screenshot-task-list {
+    max-width: 100%;
   }
 
-  /* Hide some columns on mobile */
-  .col-priority,
+  .task-list-header,
+  .task-row {
+    grid-template-columns: 2fr 1fr;
+    gap: var(--space-3);
+    padding: var(--space-4);
+  }
+
+  /* Hide assignee and due date on mobile */
   .col-assignee,
-  .col-due,
-  .col-source {
+  .col-due {
     display: none;
   }
 
   .task-title {
-    font-size: 12px;
+    font-size: 14px;
+  }
+
+  .task-row {
+    min-height: 56px;
+  }
+}
+
+/* Tablet */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .task-list-header,
+  .task-row {
+    grid-template-columns: 2.5fr 1.2fr 1.3fr;
+    gap: var(--space-4);
+  }
+
+  /* Hide due date on tablet */
+  .col-due {
+    display: none;
   }
 }
 </style>

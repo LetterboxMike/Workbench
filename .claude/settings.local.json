@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(SUPABASE_PROJECT_REF=zjxbqwbwypvfvszicugk npx supabase db push:*)"
+      "Bash(SUPABASE_PROJECT_REF=zjxbqwbwypvfvszicugk npx supabase db push:*)",
+      "Bash(gh:*)",
+      "Bash(npx nuxi prepare:*)"
     ]
   }
 }

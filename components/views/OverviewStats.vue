@@ -6,11 +6,12 @@ interface Stat {
 
 defineProps<{
   stats: Stat[];
+  layout?: 'row' | 'grid';
 }>();
 </script>
 
 <template>
-  <div class="stats-row">
+  <div class="stats-container" :class="{ 'stats-grid': layout === 'grid' }">
     <div v-for="stat in stats" :key="stat.label" class="stat-item">
       <span class="stat-value">{{ stat.value }}</span>
       <span class="stat-label">{{ stat.label }}</span>
@@ -19,10 +20,17 @@ defineProps<{
 </template>
 
 <style scoped>
-.stats-row {
+.stats-container {
   display: flex;
-  gap: var(--space-12);
-  margin-bottom: var(--space-12);
+  gap: 48px;
+  margin-bottom: 48px;
+}
+
+.stats-container.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px 48px;
+  margin-bottom: 0;
 }
 
 .stat-item {
@@ -45,6 +53,6 @@ defineProps<{
   font-weight: 400;
   letter-spacing: 0.04em;
   color: var(--color-text-tertiary);
-  margin-top: var(--space-2);
+  margin-top: 8px;
 }
 </style>

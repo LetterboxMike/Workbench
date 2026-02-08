@@ -268,6 +268,9 @@ watch(projectId, loadTasks, { immediate: true });
 
 .quick-input {
   width: 100%;
+  min-height: 44px;
+  min-width: 44px;
+  box-sizing: border-box;
   padding: 10px var(--space-3);
   background: transparent;
   border: 1px dashed var(--color-border);

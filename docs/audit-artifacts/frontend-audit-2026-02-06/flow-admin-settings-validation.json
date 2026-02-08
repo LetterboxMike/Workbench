@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-02-06T09:40:19.432Z",
+  "invalidMsg": "Slug can only contain lowercase letters, numbers, and hyphens",
+  "saveDisabled": true,
+  "calls": [
+    {
+      "method": "GET",
+      "status": 200
+    }
+  ]
+}

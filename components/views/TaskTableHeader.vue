@@ -3,7 +3,7 @@
 
 <template>
   <div class="table-header">
-    <div class="header-cell" />
+    <div class="header-cell">select</div>
     <div class="header-cell">task</div>
     <div class="header-cell">status</div>
     <div class="header-cell">priority</div>
@@ -16,7 +16,7 @@
 <style scoped>
 .table-header {
   display: grid;
-  grid-template-columns: 24px 1fr 100px 80px 100px 80px 120px;
+  grid-template-columns: 44px 1fr 110px 80px 100px 90px 120px;
   padding: var(--space-2) 0;
   border-bottom: 1px solid var(--color-border);
 }

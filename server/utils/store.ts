@@ -8,9 +8,13 @@ import type {
   LocalAuthSession,
   MagicLink,
   Notification,
+  OrgInvoice,
+  OrgSubscription,
+  OrgUsageCounter,
   Organization,
   OrgMember,
   Project,
+  ProjectFile,
   ProjectMember,
   Task,
   User,
@@ -287,6 +291,66 @@ const seedInvitations = (): Invitation[] => [];
 
 const seedMagicLinks = (): MagicLink[] => [];
 
+const seedProjectFiles = (): ProjectFile[] => [];
+
+const seedOrgSubscriptions = (): OrgSubscription[] => {
+  const now = new Date();
+  const currentPeriodStart = now.toISOString();
+  const currentPeriodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  return [
+    {
+      id: createId(),
+      org_id: DEMO_ORG_ID,
+      plan_id: 'growth',
+      status: 'active',
+      billing_interval: 'monthly',
+      seat_count: 10,
+      trial_ends_at: null,
+      current_period_start: currentPeriodStart,
+      current_period_end: currentPeriodEnd,
+      cancel_at_period_end: false,
+      canceled_at: null,
+      metadata: {},
+      created_at: nowIso(),
+      updated_at: nowIso()
+    }
+  ];
+};
+
+const seedOrgUsageCounters = (): OrgUsageCounter[] => [
+  {
+    org_id: DEMO_ORG_ID,
+    metric: 'upload_bytes',
+    value: 0,
+    updated_at: nowIso()
+  }
+];
+
+const seedOrgInvoices = (): OrgInvoice[] => {
+  const now = new Date();
+  const periodStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const periodEnd = now.toISOString();
+
+  return [
+    {
+      id: createId(),
+      org_id: DEMO_ORG_ID,
+      subscription_id: null,
+      status: 'paid',
+      amount_cents: 9900,
+      currency: 'usd',
+      due_at: null,
+      paid_at: nowIso(),
+      period_start: periodStart,
+      period_end: periodEnd,
+      metadata: { seed: true },
+      created_at: nowIso(),
+      updated_at: nowIso()
+    }
+  ];
+};
+
 const seedLocalAuthAccounts = (): LocalAuthAccount[] => [
   {
     user_id: DEMO_USER_ID,
@@ -319,11 +383,15 @@ const createSeedStore = (): WorkbenchStore => ({
   documents: seedDocuments(),
   document_content: seedDocumentContent(),
   tasks: seedTasks(),
+  project_files: seedProjectFiles(),
   comments: seedComments(),
   notifications: seedNotifications(),
   activity_log: seedActivity(),
   invitations: seedInvitations(),
   magic_links: seedMagicLinks(),
+  org_subscriptions: seedOrgSubscriptions(),
+  org_usage_counters: seedOrgUsageCounters(),
+  org_invoices: seedOrgInvoices(),
   local_auth_accounts: seedLocalAuthAccounts(),
   local_auth_sessions: seedLocalAuthSessions()
 });

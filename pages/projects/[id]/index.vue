@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import type { Task } from '~/types/domain';
+import type { Task, ProjectMember, User, Document, ActivityLog } from '~/types/domain';
+
+interface MemberWithUser extends ProjectMember {
+  user: User | null;
+}
+
+interface ActivityWithUser extends ActivityLog {
+  user?: User | null;
+}
 
 const route = useRoute();
 const api = useWorkbenchApi();
@@ -10,10 +18,11 @@ const projectId = computed(() => route.params.id as string);
 type Tab = 'overview' | 'members';
 const activeTab = ref<Tab>('overview');
 
-const tabs: { id: Tab; label: string }[] = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'members', label: 'Members' }
+const tabs = [
+  { key: 'overview', label: 'overview' },
+  { key: 'members', label: 'members' }
 ];
+
 const loading = ref(true);
 
 const project = ref<{
@@ -25,41 +34,124 @@ const project = ref<{
     tasks: number;
     open_tasks: number;
     overdue_tasks: number;
+    completed_tasks?: number;
+    in_progress_tasks?: number;
   };
 } | null>(null);
 
-const documents = ref<Array<{ id: string; title: string; updated_at: string }>>([]);
+const documents = ref<Document[]>([]);
 const tasks = ref<Task[]>([]);
-const activity = ref<Array<{ id: string; actor_id: string; action: string; target_type: string; target_id: string; created_at: string }>>([]);
+const activity = ref<ActivityWithUser[]>([]);
+const members = ref<MemberWithUser[]>([]);
 
-const stats = computed(() => [
-  { value: project.value?.metrics?.documents || 0, label: 'documents' },
-  { value: project.value?.metrics?.tasks || 0, label: 'total tasks' },
-  { value: project.value?.metrics?.open_tasks || 0, label: 'open tasks' },
-  { value: project.value?.metrics?.overdue_tasks || 0, label: 'overdue' }
-]);
+// User lookup map from members
+const userMap = computed(() => {
+  const map = new Map<string, User>();
+  for (const member of members.value) {
+    if (member.user) {
+      map.set(member.user_id, member.user);
+    }
+  }
+  return map;
+});
+
+// Get user name by ID
+const getUserName = (userId: string): string => {
+  const user = userMap.value.get(userId);
+  return user?.name || 'Unknown';
+};
+
+// Stats for the Overview section - now showing: total tasks, completed, in progress, documents
+const stats = computed(() => {
+  const totalTasks = project.value?.metrics?.tasks || 0;
+  const completedTasks = tasks.value.filter(t => t.status === 'done').length;
+  const inProgressTasks = tasks.value.filter(t => t.status === 'in_progress').length;
+  const docCount = project.value?.metrics?.documents || 0;
+
+  return [
+    { value: totalTasks, label: 'total tasks' },
+    { value: completedTasks, label: 'completed' },
+    { value: inProgressTasks, label: 'in progress' },
+    { value: docCount, label: 'documents' }
+  ];
+});
+
+// Activity feed limited to 5 items
+const recentActivity = computed(() => activity.value.slice(0, 5));
+const hasMoreActivity = computed(() => activity.value.length > 5);
+
+// Documents sorted by updated_at descending, limited to 5 items
+const recentDocuments = computed(() => {
+  return [...documents.value]
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+    .slice(0, 5);
+});
+const hasMoreDocuments = computed(() => documents.value.length > 5);
 
 const load = async () => {
   loading.value = true;
 
-  try {
-    const [projectResponse, documentResponse, taskResponse, activityResponse] = await Promise.all([
-      api.get<{ data: typeof project.value }>(`/api/projects/${projectId.value}`),
-      api.get<{ data: { flat: Array<{ id: string; title: string; updated_at: string }> } }>(`/api/projects/${projectId.value}/documents`),
-      api.get<{ data: Task[] }>(`/api/projects/${projectId.value}/tasks`),
-      api.get<{ data: typeof activity.value }>(`/api/projects/${projectId.value}/activity`)
-    ]);
+  const [projectResult, documentResult, taskResult, activityResult, membersResult] = await Promise.allSettled([
+    api.get<{ data: typeof project.value }>(`/api/projects/${projectId.value}`),
+    api.get<{ data: { flat: Document[]; tree: unknown[] } }>(`/api/projects/${projectId.value}/documents`),
+    api.get<{ data: Task[] }>(`/api/projects/${projectId.value}/tasks`),
+    api.get<{ data: ActivityWithUser[] }>(`/api/projects/${projectId.value}/activity`),
+    api.get<{ data: MemberWithUser[] }>(`/api/projects/${projectId.value}/members`)
+  ]);
 
-    project.value = projectResponse.data;
-    documents.value = documentResponse.data.flat.slice(0, 6);
-    tasks.value = taskResponse.data.slice(0, 8);
-    activity.value = activityResponse.data.slice(0, 10);
-  } finally {
-    loading.value = false;
+  if (projectResult.status === 'fulfilled') {
+    const projectResponse = projectResult.value;
+    if (projectResponse && typeof projectResponse === 'object' && 'data' in projectResponse) {
+      project.value = projectResponse.data || null;
+    } else {
+      project.value = projectResponse as typeof project.value;
+    }
+  } else {
+    console.error('Failed to load project details:', projectResult.reason);
+    project.value = null;
   }
+
+  if (documentResult.status === 'fulfilled') {
+    const docsList = documentResult.value?.data?.flat;
+    documents.value = Array.isArray(docsList) ? docsList : [];
+  } else {
+    console.error('Failed to load project documents:', documentResult.reason);
+    documents.value = [];
+  }
+
+  if (taskResult.status === 'fulfilled') {
+    tasks.value = Array.isArray(taskResult.value?.data) ? taskResult.value.data : [];
+  } else {
+    console.error('Failed to load project tasks:', taskResult.reason);
+    tasks.value = [];
+  }
+
+  if (activityResult.status === 'fulfilled') {
+    activity.value = Array.isArray(activityResult.value?.data) ? activityResult.value.data : [];
+  } else {
+    console.error('Failed to load project activity:', activityResult.reason);
+    activity.value = [];
+  }
+
+  if (membersResult.status === 'fulfilled') {
+    members.value = Array.isArray(membersResult.value?.data) ? membersResult.value.data : [];
+  } else {
+    console.error('Failed to load project members:', membersResult.reason);
+    members.value = [];
+  }
+
+  loading.value = false;
 };
 
+// Load data when projectId changes or on mount
 watch(projectId, load, { immediate: true });
+
+// Also load on mounted as a backup for client-side navigation
+onMounted(() => {
+  if (!project.value && projectId.value) {
+    load();
+  }
+});
 
 const navigateToDoc = (docId: string) => {
   navigateTo(`/projects/${projectId.value}/documents/${docId}`);
@@ -68,104 +160,123 @@ const navigateToDoc = (docId: string) => {
 const navigateToTask = (taskId: string) => {
   navigateTo(`/projects/${projectId.value}/tasks/list?task=${taskId}`);
 };
+
+const navigateToTasks = () => {
+  navigateTo(`/projects/${projectId.value}/tasks/list`);
+};
+
+const navigateToDocuments = () => {
+  navigateTo(`/projects/${projectId.value}/documents`);
+};
+
+const createDocument = () => {
+  navigateTo(`/projects/${projectId.value}/documents?new=true`);
+};
+
+// Get user name from activity
+const getActorName = (entry: ActivityWithUser): string => {
+  if (entry.user?.name) return entry.user.name;
+  if (entry.actor_type === 'ai') return 'AI Assistant';
+  if (entry.actor_type === 'system') return 'System';
+  return 'Unknown';
+};
+
+const getActorAvatar = (entry: ActivityWithUser): string | null => {
+  return entry.user?.avatar_url || null;
+};
+
+const formatActivityAction = (entry: ActivityWithUser): string => {
+  return `${entry.action} ${entry.target_type}`;
+};
 </script>
 
 <template>
   <div class="overview-page">
-    <UiPageHeader
-      :title="project?.name || 'Project Overview'"
-      :subtitle="project?.description || 'No project description yet.'"
-    />
-
-    <!-- Tab Navigation -->
-    <nav class="tab-nav">
-      <button
-        v-for="tab in tabs"
-        :key="tab.id"
-        type="button"
-        class="tab-button"
-        :class="{ active: activeTab === tab.id }"
-        @click="activeTab = tab.id"
-      >
-        {{ tab.label }}
-      </button>
-    </nav>
+    <!-- Page Header -->
+    <header class="page-header">
+      <h1 class="page-title">{{ project?.name || 'Project' }}</h1>
+      <ViewTabs
+        :tabs="tabs"
+        :active="activeTab"
+        @change="activeTab = $event as Tab"
+      />
+    </header>
 
     <!-- Overview Tab Content -->
     <template v-if="activeTab === 'overview'">
-      <div v-if="loading" class="loading">Loading project dashboard...</div>
+      <div v-if="loading" class="loading">loading...</div>
 
       <template v-else>
-      <!-- Stats -->
-      <ViewsOverviewStats :stats="stats" />
+        <!-- Top Section: 2-Column Layout -->
+        <div class="top-section">
+          <!-- Left Column: Overview Stats -->
+          <div class="stats-column">
+            <OverviewStats :stats="stats" layout="grid" />
+          </div>
 
-      <!-- Content Grid -->
-      <div class="content-grid">
-        <!-- Left Column -->
-        <div class="column">
-          <!-- Recent Documents -->
-          <section class="section">
-            <UiSectionHeader
-              label="recent documents"
-              link-text="view all"
-              @link-click="navigateTo(`/projects/${projectId}/documents`)"
-            />
+          <!-- Right Column: Activity Feed -->
+          <div class="activity-column">
+            <div class="section-header">
+              <span class="section-label">recent activity</span>
+            </div>
 
-            <div v-if="documents.length" class="list">
-              <ViewsDocListItem
-                v-for="doc in documents"
-                :key="doc.id"
-                :title="doc.title"
-                :updated-at="doc.updated_at"
-                @click="navigateToDoc(doc.id)"
+            <div v-if="recentActivity.length" class="activity-list">
+              <ActivityItem
+                v-for="entry in recentActivity"
+                :key="entry.id"
+                :actor="getActorName(entry)"
+                :actor-avatar="getActorAvatar(entry)"
+                :action="formatActivityAction(entry)"
+                :timestamp="entry.created_at"
               />
             </div>
 
-            <p v-else class="empty-text">No documents yet. Create one from the documents view.</p>
-          </section>
-        </div>
-
-        <!-- Right Column -->
-        <div class="column">
-          <!-- Task Snapshot -->
-          <section class="section">
-            <UiSectionHeader
-              label="task snapshot"
-              link-text="view all"
-              @link-click="navigateTo(`/projects/${projectId}/tasks/list`)"
-            />
-
-            <div v-if="tasks.length" class="list">
-              <ViewsTaskSnapshotItem
-                v-for="task in tasks"
-                :key="task.id"
-                :task="task"
-                @click="navigateToTask(task.id)"
-              />
+            <div v-else class="empty-state">
+              <span class="empty-text">no activity yet</span>
+              <span class="empty-hint">activity will appear as you create tasks and documents</span>
             </div>
 
-            <p v-else class="empty-text">No tasks yet. Start in list view to create and assign work.</p>
-          </section>
+            <GhostButton
+              v-if="hasMoreActivity"
+              label="view all"
+              class="view-all-btn"
+              @click="navigateTo(`/projects/${projectId}/activity`)"
+            />
+          </div>
         </div>
-      </div>
 
-      <!-- Activity Section -->
-      <section class="section activity-section">
-        <UiSectionHeader label="recent activity" />
+        <!-- Tasks Due Section -->
+        <TasksDueSection
+          :tasks="tasks"
+          @task-click="navigateToTask"
+          @view-all="navigateToTasks"
+        />
 
-        <div v-if="activity.length" class="list">
-          <ViewsActivityItem
-            v-for="entry in activity"
-            :key="entry.id"
-            :actor="entry.actor_id"
-            :action="entry.action"
-            :target="entry.target_type"
-            :timestamp="entry.created_at"
+        <!-- Recent Documents Section -->
+        <section class="documents-section">
+          <SectionHeader
+            label="recent documents"
+            :link-text="hasMoreDocuments ? 'view all' : undefined"
+            @link-click="navigateToDocuments"
           />
-        </div>
 
-        <p v-else class="empty-text">No activity yet.</p>
-      </section>
+          <div v-if="recentDocuments.length" class="document-list">
+            <DocListItem
+              v-for="doc in recentDocuments"
+              :key="doc.id"
+              :title="doc.title"
+              :updated-at="doc.updated_at"
+              :owner="getUserName(doc.created_by)"
+              @click="navigateToDoc(doc.id)"
+            />
+          </div>
+
+          <DashedButton
+            v-else
+            label="create first document"
+            @click="createDocument"
+          />
+        </section>
       </template>
     </template>
 
@@ -178,71 +289,123 @@ const navigateToTask = (taskId: string) => {
 
 <style scoped>
 .overview-page {
-  max-width: var(--content-max-width);
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 48px;
 }
 
-.tab-nav {
+/* Page Header */
+.page-header {
   display: flex;
-  gap: var(--space-1);
-  margin-bottom: var(--space-6);
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
 }
 
-.tab-button {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--color-text-secondary);
-  background: transparent;
-  border: none;
-  padding: var(--space-2) var(--space-4);
-  cursor: pointer;
-  border-radius: var(--radius-md);
-  transition: background var(--transition-fast), color var(--transition-fast);
-}
-
-.tab-button:hover {
-  background: var(--color-bg-hover);
+.page-title {
+  font-family: var(--font-body);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
   color: var(--color-text);
+  margin: 0;
 }
 
-.tab-button.active {
-  background: var(--color-bg-active);
-  color: var(--color-text);
-  font-weight: 500;
-}
-
+/* Loading State */
 .loading {
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--color-text-tertiary);
-  padding: var(--space-8) 0;
+  padding: 32px 0;
 }
 
-.content-grid {
+/* Top Section: 2-Column Grid */
+.top-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-12);
-  margin-bottom: var(--space-12);
+  gap: 48px;
+  margin-bottom: 32px;
 }
 
-.section {
-  margin-bottom: var(--space-8);
+/* Stats Column */
+.stats-column {
+  padding-top: 8px;
 }
 
-.activity-section {
-  margin-top: var(--space-12);
-}
-
-.list {
+/* Activity Column */
+.activity-column {
   display: flex;
   flex-direction: column;
 }
 
-.empty-text {
-  font-family: var(--font-body);
-  font-size: 13px;
+.section-header {
+  margin-bottom: 16px;
+}
+
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 300;
+  letter-spacing: 0.08em;
   color: var(--color-text-tertiary);
-  padding: var(--space-4) 0;
+  text-transform: lowercase;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.empty-text {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.empty-hint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  opacity: 0.4;
+}
+
+.view-all-btn {
+  align-self: flex-end;
+}
+
+/* Documents Section */
+.documents-section {
+  margin-top: 32px;
+}
+
+.document-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .overview-page {
+    padding: 24px;
+  }
+
+  .top-section {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
 }
 </style>

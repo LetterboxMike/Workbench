@@ -72,6 +72,7 @@
             <span class="task-text">Design hero section mockups</span>
             <span class="task-meta">
               <PriorityDot priority="high" />
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" alt="Sarah" class="task-avatar" />
               <span class="task-assignee">Sarah</span>
               <span class="task-due">Due Mar 15</span>
             </span>
@@ -82,6 +83,7 @@
             <span class="task-text completed">Set up staging environment</span>
             <span class="task-meta">
               <PriorityDot priority="medium" />
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jake" alt="Jake" class="task-avatar" />
               <span class="task-assignee">Jake</span>
             </span>
           </div>
@@ -91,6 +93,7 @@
             <span class="task-text">Write content for about page</span>
             <span class="task-meta">
               <PriorityDot priority="low" />
+              <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Michael" alt="Michael" class="task-avatar" />
               <span class="task-assignee">Michael</span>
               <span class="task-due">Due Mar 20</span>
             </span>
@@ -148,27 +151,12 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue';
+
 const showSlashMenu = ref(false);
 const showCursor = ref(false);
 
-// Animation sequence for demo
-onMounted(() => {
-  // Show cursor briefly
-  setTimeout(() => {
-    showCursor.value = true;
-  }, 500);
-
-  // Hide cursor, show slash menu
-  setTimeout(() => {
-    showCursor.value = false;
-    showSlashMenu.value = true;
-  }, 2000);
-
-  // Hide slash menu after demo
-  setTimeout(() => {
-    showSlashMenu.value = false;
-  }, 5000);
-});
+// Static screenshot - no animations
 </script>
 
 <style scoped>
@@ -354,6 +342,14 @@ onMounted(() => {
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--color-text-tertiary);
+}
+
+.task-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
 }
 
 .task-assignee {

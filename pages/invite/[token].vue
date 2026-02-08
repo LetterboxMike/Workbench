@@ -197,8 +197,8 @@ const submit = async () => {
 }
 
 .message.error {
-  background: rgba(239, 68, 68, 0.1);
-  color: rgb(239, 68, 68);
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
 }
 
 .help-text {

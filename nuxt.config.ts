@@ -6,7 +6,13 @@ const authMode = (() => {
     return 'disabled';
   }
 
-  if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+  // Require all three Supabase env vars to enable Supabase mode
+  // This ensures consistency with server-side auth mode detection
+  const hasSupabase = process.env.SUPABASE_URL &&
+    process.env.SUPABASE_ANON_KEY &&
+    process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (hasSupabase) {
     return 'supabase';
   }
 
@@ -15,12 +21,31 @@ const authMode = (() => {
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
-  devtools: { enabled: true },
+  devtools: { enabled: process.env.NODE_ENV !== 'production' },
+  devServer: {
+    host: process.env.NUXT_HOST || process.env.NITRO_HOST || '127.0.0.1',
+    port: Number(process.env.NUXT_PORT || process.env.NITRO_PORT || process.env.PORT || 4000)
+  },
+
+  // Explicitly configure component auto-imports
+  components: [
+    {
+      path: '~/components',
+      pathPrefix: false
+    }
+  ],
 
   // Disable SSR for marketing and auth pages
   routeRules: {
-    '/': { ssr: false },        // Marketing homepage with GSAP animations
-    '/login': { ssr: false }     // Login page
+    '/': { ssr: false },               // Marketing homepage with GSAP animations
+    '/login': { ssr: false },          // Login page
+    '/test-marketing': { ssr: false }, // Test page
+    // Authenticated app routes are client-rendered to avoid SSR hydration drift
+    '/projects/**': { ssr: false },
+    '/notifications': { ssr: false },
+    '/users': { ssr: false },
+    '/settings': { ssr: false },
+    '/admin/**': { ssr: false }
   },
 
   // Global CSS imports
@@ -51,6 +76,7 @@ export default defineNuxtConfig({
     anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
     public: {
       appName: 'Workbench',
+      baseUrl: process.env.NUXT_PUBLIC_BASE_URL || 'http://localhost:4000',
       supabaseUrl: process.env.SUPABASE_URL || '',
       supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
       authMode

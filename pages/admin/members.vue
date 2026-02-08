@@ -144,14 +144,17 @@ onMounted(load);
     <!-- Search Bar -->
     <div class="search-bar">
       <div class="search-input-wrapper">
+        <label for="member-search" class="visually-hidden">Search members</label>
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="11" cy="11" r="8" />
           <path d="M21 21l-4.35-4.35" />
         </svg>
         <input
+          id="member-search"
           v-model="searchQuery"
           type="text"
           class="search-input"
+          aria-label="Search organization members"
           placeholder="Search by name or email..."
         />
       </div>
@@ -272,6 +275,17 @@ onMounted(load);
   margin-bottom: var(--space-6);
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  border: 0;
+}
+
 .search-input-wrapper {
   position: relative;
   display: flex;
@@ -290,6 +304,8 @@ onMounted(load);
 
 .search-input {
   width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
   padding: var(--space-2) var(--space-3) var(--space-2) var(--space-10);
   background: var(--color-bg-input);
   border: 1px solid var(--color-border);
@@ -317,28 +333,33 @@ onMounted(load);
   gap: var(--space-4);
   padding: var(--space-3) var(--space-4);
   margin-bottom: var(--space-6);
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
   font-family: var(--font-mono);
   font-size: 12px;
-  color: rgb(239, 68, 68);
+  color: var(--color-text-secondary);
 }
 
 .error-dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   padding: var(--space-1) var(--space-2);
   background: transparent;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
   font-size: 11px;
-  color: rgb(239, 68, 68);
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: background var(--transition-fast);
 }
 
 .error-dismiss:hover {
-  background: rgba(239, 68, 68, 0.1);
+  background: var(--color-bg-hover);
 }
 
 /* Loading State */
@@ -369,6 +390,11 @@ onMounted(load);
 }
 
 .clear-search {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   padding: var(--space-2) var(--space-3);
   font-family: var(--font-mono);
   font-size: 12px;
@@ -495,15 +521,15 @@ onMounted(load);
 }
 
 .role-badge--admin {
-  background: rgba(139, 92, 246, 0.1);
-  color: rgb(139, 92, 246);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
 }
 
 .role-badge--member {
-  background: rgba(107, 114, 128, 0.1);
-  color: rgb(107, 114, 128);
-  border: 1px solid rgba(107, 114, 128, 0.2);
+  background: var(--color-bg-surface);
+  color: var(--color-text-tertiary);
+  border: 1px solid var(--color-border);
 }
 
 /* Joined Date */
@@ -515,6 +541,11 @@ onMounted(load);
 
 /* Role Toggle Button */
 .role-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 72px;
   padding: var(--space-1) var(--space-3);
   font-family: var(--font-mono);
   font-size: 11px;

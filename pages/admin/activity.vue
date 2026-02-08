@@ -27,6 +27,7 @@ interface PaginationInfo {
 const api = useWorkbenchApi();
 
 const loading = ref(true);
+const exportingCsv = ref(false);
 const error = ref<string | null>(null);
 
 const activity = ref<ActivityEntry[]>([]);
@@ -140,9 +141,51 @@ const formatDateTime = (timestamp: string): string => {
   });
 };
 
-const exportToCsv = () => {
-  // Placeholder for CSV export functionality
-  alert('CSV export functionality coming soon.');
+const exportToCsv = async () => {
+  if (exportingCsv.value) {
+    return;
+  }
+
+  exportingCsv.value = true;
+
+  try {
+    const params = new URLSearchParams();
+    params.set('format', 'csv');
+
+    if (actionFilter.value !== 'all') {
+      params.set('action', actionFilter.value);
+    }
+    if (targetTypeFilter.value !== 'all') {
+      params.set('target_type', targetTypeFilter.value);
+    }
+
+    const response = await fetch(`/api/admin/activity?${params.toString()}`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to export activity CSV.');
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const disposition = response.headers.get('content-disposition') || '';
+    const matched = disposition.match(/filename="?([^"]+)"?/);
+    const filename = matched?.[1] || `activity-log-${new Date().toISOString().slice(0, 10)}.csv`;
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'Failed to export activity CSV.';
+  } finally {
+    exportingCsv.value = false;
+  }
 };
 
 // Watch for filter changes
@@ -160,13 +203,13 @@ onMounted(() => loadActivity(0));
       subtitle="View all activity across the organization."
     >
       <template #right>
-        <button type="button" class="export-button" @click="exportToCsv">
+        <button type="button" class="export-button" :disabled="exportingCsv" @click="exportToCsv">
           <svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="7 10 12 15 17 10" />
             <line x1="12" y1="15" x2="12" y2="3" />
           </svg>
-          Export CSV
+          {{ exportingCsv ? 'Exporting...' : 'Export CSV' }}
         </button>
       </template>
     </UiPageHeader>
@@ -312,6 +355,9 @@ onMounted(() => loadActivity(0));
 .export-button {
   display: flex;
   align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   font-family: var(--font-mono);
@@ -359,6 +405,8 @@ onMounted(() => loadActivity(0));
 }
 
 .filter-select {
+  min-height: 44px;
+  box-sizing: border-box;
   padding: var(--space-2) var(--space-3);
   background: var(--color-bg-input);
   border: 1px solid var(--color-border);
@@ -384,28 +432,33 @@ onMounted(() => loadActivity(0));
   gap: var(--space-4);
   padding: var(--space-3) var(--space-4);
   margin-bottom: var(--space-6);
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
   font-family: var(--font-mono);
   font-size: 12px;
-  color: rgb(239, 68, 68);
+  color: var(--color-text-secondary);
 }
 
 .error-dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   padding: var(--space-1) var(--space-2);
   background: transparent;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
   font-size: 11px;
-  color: rgb(239, 68, 68);
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: background var(--transition-fast);
 }
 
 .error-dismiss:hover {
-  background: rgba(239, 68, 68, 0.1);
+  background: var(--color-bg-hover);
 }
 
 /* Loading State */
@@ -494,21 +547,21 @@ onMounted(() => loadActivity(0));
 }
 
 .actor-badge--user {
-  background: rgba(59, 130, 246, 0.1);
-  color: rgb(59, 130, 246);
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
 }
 
 .actor-badge--ai {
-  background: rgba(139, 92, 246, 0.1);
-  color: rgb(139, 92, 246);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: var(--color-bg-hover);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
 }
 
 .actor-badge--system {
-  background: rgba(107, 114, 128, 0.1);
-  color: rgb(107, 114, 128);
-  border: 1px solid rgba(107, 114, 128, 0.2);
+  background: var(--color-bg-surface);
+  color: var(--color-text-tertiary);
+  border: 1px solid var(--color-border);
 }
 
 /* Action Text */
@@ -590,6 +643,9 @@ onMounted(() => loadActivity(0));
 .pagination-button {
   display: flex;
   align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   gap: var(--space-1);
   padding: var(--space-2) var(--space-3);
   font-family: var(--font-mono);

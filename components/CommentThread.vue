@@ -25,6 +25,7 @@ const emit = defineEmits<{
 const api = useWorkbenchApi();
 const showReplyComposer = ref(false);
 const isResolving = ref(false);
+const actionError = ref('');
 
 const maxDepth = 3; // Maximum nesting depth
 const currentDepth = props.depth || 0;
@@ -94,6 +95,7 @@ const toggleResolve = async () => {
   if (isResolving.value) return;
 
   isResolving.value = true;
+  actionError.value = '';
 
   try {
     if (props.comment.resolved_at) {
@@ -107,7 +109,7 @@ const toggleResolve = async () => {
     emit('resolved');
   } catch (error) {
     console.error('Failed to toggle resolve:', error);
-    alert('Failed to update comment. Please try again.');
+    actionError.value = 'Failed to update comment. Please try again.';
   } finally {
     isResolving.value = false;
   }
@@ -179,6 +181,8 @@ const handleConvertToTask = () => {
           </button>
         </div>
 
+        <p v-if="actionError" class="comment-error">{{ actionError }}</p>
+
         <!-- Reply composer -->
         <div v-if="showReplyComposer" class="comment-reply-composer">
           <CommentComposer
@@ -239,7 +243,7 @@ const handleConvertToTask = () => {
   border-radius: 50%;
   flex-shrink: 0;
   overflow: hidden;
-  background: var(--color-bg-tertiary);
+  background: var(--color-bg-surface);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -296,13 +300,13 @@ const handleConvertToTask = () => {
 }
 
 .comment-resolved-badge {
-  background: var(--color-success-bg, #d4edda);
-  color: var(--color-success-text, #155724);
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
 }
 
 .comment-task-badge {
-  background: var(--color-info-bg, #d1ecf1);
-  color: var(--color-info-text, #0c5460);
+  background: var(--color-bg-hover);
+  color: var(--color-text-secondary);
 }
 
 .comment-body {
@@ -318,15 +322,15 @@ const handleConvertToTask = () => {
   display: inline-block;
   padding: 2px 6px;
   border-radius: var(--radius-sm);
-  background: var(--color-primary-bg, rgba(59, 130, 246, 0.1));
-  color: var(--color-primary);
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
   font-weight: 500;
   cursor: pointer;
   transition: background var(--transition-fast);
 }
 
 .mention-chip:hover {
-  background: var(--color-primary-bg-hover, rgba(59, 130, 246, 0.2));
+  background: var(--color-bg-hover);
 }
 
 .comment-actions {
@@ -358,6 +362,12 @@ const handleConvertToTask = () => {
 
 .comment-reply-composer {
   margin-top: var(--space-2);
+}
+
+.comment-error {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-text-secondary);
 }
 
 .comment-replies {

@@ -20,7 +20,8 @@ const emit = defineEmits<{
 
 const api = useWorkbenchApi();
 const isSubmitting = ref(false);
-const projectMembers = ref<(any & { user: User })[]>([]);
+const projectMembers = ref<Array<{ user_id: string; user: User | null }>>([]);
+const errorMessage = ref('');
 
 // Form fields
 const form = ref({
@@ -51,7 +52,7 @@ const priorities = [
 // Fetch project members
 onMounted(async () => {
   try {
-    const response = await api.get(`/api/projects/${props.projectId}/members`);
+    const response = await api.get<{ data: Array<{ user_id: string; user: User | null }> }>(`/api/projects/${props.projectId}/members`);
     projectMembers.value = response.data;
 
     // Pre-fill form with comment data
@@ -72,9 +73,10 @@ const handleSubmit = async () => {
   if (!form.value.title.trim() || isSubmitting.value) return;
 
   isSubmitting.value = true;
+  errorMessage.value = '';
 
   try {
-    const response = await api.post(`/api/comments/${props.comment.id}/convert-to-task`, {
+    const response = await api.post<{ data: any }>(`/api/comments/${props.comment.id}/convert-to-task`, {
       title: form.value.title.trim(),
       description: form.value.description.trim() || undefined,
       assignee_id: form.value.assignee_id,
@@ -87,7 +89,7 @@ const handleSubmit = async () => {
     emit('close');
   } catch (error) {
     console.error('Failed to convert comment to task:', error);
-    alert('Failed to convert comment to task. Please try again.');
+    errorMessage.value = 'Failed to convert comment to task. Please try again.';
   } finally {
     isSubmitting.value = false;
   }
@@ -146,7 +148,7 @@ const handleBackdropClick = (event: MouseEvent) => {
           <select id="task-assignee" v-model="form.assignee_id" class="form-select">
             <option :value="null">Unassigned</option>
             <option v-for="member in projectMembers" :key="member.user_id" :value="member.user_id">
-              {{ member.user.name }}
+              {{ member.user?.name || member.user?.email || 'Unknown user' }}
             </option>
           </select>
         </div>
@@ -192,6 +194,8 @@ const handleBackdropClick = (event: MouseEvent) => {
           {{ isSubmitting ? 'Creating...' : 'Create Task' }}
         </button>
       </div>
+
+      <p v-if="errorMessage" class="message-error">{{ errorMessage }}</p>
     </div>
   </div>
 </template>
@@ -200,7 +204,7 @@ const handleBackdropClick = (event: MouseEvent) => {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(22, 22, 22, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -211,7 +215,6 @@ const handleBackdropClick = (event: MouseEvent) => {
 .modal-content {
   background: var(--color-bg);
   border-radius: var(--radius-lg);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   width: 100%;
   max-width: 600px;
   max-height: 90vh;
@@ -305,7 +308,7 @@ const handleBackdropClick = (event: MouseEvent) => {
 .form-textarea:focus,
 .form-select:focus {
   outline: none;
-  border-color: var(--color-primary);
+  border-color: var(--color-border-strong);
 }
 
 .form-textarea {
@@ -333,12 +336,12 @@ const handleBackdropClick = (event: MouseEvent) => {
 }
 
 .btn-primary {
-  background: var(--color-primary);
-  color: white;
+  background: var(--color-text);
+  color: var(--color-text-inverse);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--color-primary-hover);
+  opacity: 0.9;
 }
 
 .btn-primary:disabled {
@@ -359,5 +362,12 @@ const handleBackdropClick = (event: MouseEvent) => {
 .btn-secondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.message-error {
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-text-secondary);
 }
 </style>

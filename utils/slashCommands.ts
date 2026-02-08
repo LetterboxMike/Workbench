@@ -46,7 +46,7 @@ export function getSuggestionOptions(
   onTableClick: () => void
 ): Partial<SuggestionOptions> {
   let component: VueRenderer;
-  let popup: TippyInstance[];
+  let popup: TippyInstance[] = [];
 
   return {
     char: '/',
@@ -185,6 +185,7 @@ export function getSuggestionOptions(
       return {
         onStart: (props: any) => {
           propsRef = props;
+          selectedIndex = 0;
 
           component = new VueRenderer(SlashCommandMenu, {
             props: {
@@ -194,20 +195,23 @@ export function getSuggestionOptions(
             editor: props.editor
           });
 
-          // Handle select event from component (mouse click)
-          if (component.element) {
-            component.element.addEventListener('click', (e: Event) => {
-              const target = e.target as HTMLElement;
-              const commandItem = target.closest('.command-item');
-              if (commandItem) {
-                const items = component.element.querySelectorAll('.command-item');
-                const index = Array.from(items).indexOf(commandItem);
-                if (index !== -1 && propsRef.items[index]) {
-                  propsRef.command(propsRef.items[index]);
-                }
-              }
-            });
+          const element = component.element;
+          if (!element) {
+            return;
           }
+
+          // Handle select event from component (mouse click)
+          element.addEventListener('click', (e: Event) => {
+            const target = e.target as HTMLElement;
+            const commandItem = target.closest('.command-item');
+            if (commandItem) {
+              const items = element.querySelectorAll('.command-item');
+              const index = Array.from(items).indexOf(commandItem);
+              if (index !== -1 && propsRef.items[index]) {
+                propsRef.command(propsRef.items[index]);
+              }
+            }
+          });
 
           if (!props.clientRect) {
             return;
@@ -216,7 +220,7 @@ export function getSuggestionOptions(
           popup = tippy('body', {
             getReferenceClientRect: props.clientRect as () => DOMRect,
             appendTo: () => document.body,
-            content: component.element,
+            content: element,
             showOnCreate: true,
             interactive: true,
             trigger: 'manual',
@@ -236,12 +240,18 @@ export function getSuggestionOptions(
             return;
           }
 
-          popup[0].setProps({
-            getReferenceClientRect: props.clientRect as () => DOMRect
-          });
+          if (popup[0]) {
+            popup[0].setProps({
+              getReferenceClientRect: props.clientRect as () => DOMRect
+            });
+          }
         },
 
         onKeyDown(props: any) {
+          if (!props.items.length) {
+            return false;
+          }
+
           if (props.event.key === 'ArrowUp') {
             selectedIndex = (selectedIndex + props.items.length - 1) % props.items.length;
             component.updateProps({ selectedIndex });
@@ -266,7 +276,7 @@ export function getSuggestionOptions(
         },
 
         onExit() {
-          popup[0].destroy();
+          popup[0]?.destroy();
           component.destroy();
           selectedIndex = 0;
         }

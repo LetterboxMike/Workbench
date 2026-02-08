@@ -14,7 +14,7 @@ defineProps<{
         {{ subtitle }}
       </p>
     </div>
-    <div v-if="$slots.right" class="header-right">
+    <div class="header-right">
       <slot name="right" />
     </div>
   </header>
@@ -60,5 +60,9 @@ defineProps<{
   align-items: center;
   gap: var(--space-2);
   margin-left: var(--space-4);
+}
+
+.header-right:empty {
+  display: none;
 }
 </style>

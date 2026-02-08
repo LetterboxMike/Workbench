@@ -192,7 +192,7 @@ onBeforeUnmount(() => {
 div:first-child {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(22, 22, 22, 0.6);
   display: flex;
   align-items: flex-start;
   justify-content: center;

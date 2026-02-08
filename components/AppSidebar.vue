@@ -172,6 +172,7 @@ const isActivePrefix = (prefix: string) => {
               class="pin-button"
               :class="{ pinned: project.pinned }"
               :title="project.pinned ? 'Unpin project' : 'Pin project'"
+              :aria-label="project.pinned ? `Unpin ${project.name}` : `Pin ${project.name}`"
               @click="emit('togglePin', project.id)"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -225,50 +226,15 @@ const isActivePrefix = (prefix: string) => {
             </svg>
             <span>documents</span>
           </NuxtLink>
-        </section>
-
-        <!-- Task Views Section -->
-        <section class="nav-section">
-          <p class="section-label">task views</p>
           <NuxtLink
-            :to="`/projects/${currentProjectId}/tasks/list`"
-            class="nav-item nav-item--indent"
-            :class="{ active: isActive(`/projects/${currentProjectId}/tasks/list`) }"
+            :to="`/projects/${currentProjectId}/files`"
+            class="nav-item"
+            :class="{ active: isActive(`/projects/${currentProjectId}/files`) }"
           >
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <line x1="8" y1="6" x2="21" y2="6" />
-              <line x1="8" y1="12" x2="21" y2="12" />
-              <line x1="8" y1="18" x2="21" y2="18" />
-              <line x1="3" y1="6" x2="3.01" y2="6" />
-              <line x1="3" y1="12" x2="3.01" y2="12" />
-              <line x1="3" y1="18" x2="3.01" y2="18" />
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
             </svg>
-            <span>list</span>
-          </NuxtLink>
-          <NuxtLink
-            :to="`/projects/${currentProjectId}/tasks/kanban`"
-            class="nav-item nav-item--indent"
-            :class="{ active: isActive(`/projects/${currentProjectId}/tasks/kanban`) }"
-          >
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <rect x="4" y="4" width="4" height="16" rx="1" />
-              <rect x="10" y="4" width="4" height="10" rx="1" />
-              <rect x="16" y="4" width="4" height="14" rx="1" />
-            </svg>
-            <span>kanban</span>
-          </NuxtLink>
-          <NuxtLink
-            :to="`/projects/${currentProjectId}/tasks/calendar`"
-            class="nav-item nav-item--indent"
-            :class="{ active: isActive(`/projects/${currentProjectId}/tasks/calendar`) }"
-          >
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-            <span>calendar</span>
+            <span>files</span>
           </NuxtLink>
         </section>
 
@@ -314,6 +280,7 @@ const isActivePrefix = (prefix: string) => {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-height: 44px;
   width: calc(100% - var(--space-6));
   margin: 0 var(--space-3) var(--space-3);
   padding: var(--space-3) 14px;
@@ -376,6 +343,7 @@ const isActivePrefix = (prefix: string) => {
   align-items: center;
   gap: var(--space-2);
   width: 100%;
+  min-height: 44px;
   padding: var(--space-3) var(--space-3) var(--space-1);
   padding-left: 20px;
   background: none;
@@ -422,6 +390,7 @@ const isActivePrefix = (prefix: string) => {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-height: 44px;
   padding: 6px var(--space-3);
   border-radius: var(--radius-md);
   font-family: var(--font-body);
@@ -458,10 +427,12 @@ const isActivePrefix = (prefix: string) => {
 
 .pin-button {
   position: absolute;
-  right: 8px;
-  width: 24px;
-  height: 24px;
-  padding: 4px;
+  right: 4px;
+  min-width: 44px;
+  min-height: 44px;
+  width: 36px;
+  height: 36px;
+  padding: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -485,8 +456,8 @@ const isActivePrefix = (prefix: string) => {
 }
 
 .pin-button svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
 
 .nav-icon {
@@ -504,5 +475,11 @@ const isActivePrefix = (prefix: string) => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .pin-button {
+    opacity: 1;
+  }
 }
 </style>

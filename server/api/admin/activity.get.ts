@@ -1,4 +1,4 @@
-import { createError, defineEventHandler, getQuery } from 'h3';
+import { createError, defineEventHandler, getQuery, setHeader } from 'h3';
 import {
   getCurrentUser,
   getCurrentUserDb,
@@ -11,6 +11,48 @@ import {
 import { getStore } from '~/server/utils/store';
 import { db } from '~/server/utils/db';
 
+const csvEscape = (value: unknown): string => {
+  const text = typeof value === 'string' ? value : value == null ? '' : String(value);
+  if (text.includes('"') || text.includes(',') || text.includes('\n')) {
+    return `"${text.replace(/"/g, '""')}"`;
+  }
+  return text;
+};
+
+const getActorName = (entry: any): string => {
+  if (entry.actor_type === 'system') return 'system';
+  if (entry.actor_type === 'ai') return 'ai';
+  return entry.actor?.display_name || entry.actor?.name || entry.actor?.email || entry.actor_id || '';
+};
+
+const toCsv = (entries: any[]): string => {
+  const headers = [
+    'created_at',
+    'actor_type',
+    'actor_name',
+    'action',
+    'target_type',
+    'target_id',
+    'project_id',
+    'org_id',
+    'metadata'
+  ];
+
+  const rows = entries.map((entry) => ([
+    entry.created_at,
+    entry.actor_type,
+    getActorName(entry),
+    entry.action,
+    entry.target_type,
+    entry.target_id,
+    entry.project_id || '',
+    entry.org_id,
+    JSON.stringify(entry.metadata || {})
+  ].map(csvEscape).join(',')));
+
+  return [headers.join(','), ...rows].join('\n');
+};
+
 export default defineEventHandler(async (event) => {
   const useDb = useDbAuth();
   const query = getQuery(event);
@@ -20,6 +62,7 @@ export default defineEventHandler(async (event) => {
   const action = typeof query.action === 'string' ? query.action : undefined;
   const targetType = typeof query.target_type === 'string' ? query.target_type : undefined;
   const projectId = typeof query.project_id === 'string' ? query.project_id : undefined;
+  const format = typeof query.format === 'string' ? query.format : 'json';
 
   if (useDb) {
     // Supabase mode
@@ -41,9 +84,17 @@ export default defineEventHandler(async (event) => {
       project_id: projectId,
       action,
       target_type: targetType,
-      limit,
-      offset
+      limit: format === 'csv' ? 5000 : limit,
+      offset: format === 'csv' ? 0 : offset
     });
+
+    if (format === 'csv') {
+      const csv = toCsv(entries);
+      const stamp = new Date().toISOString().slice(0, 10);
+      setHeader(event, 'Content-Type', 'text/csv; charset=utf-8');
+      setHeader(event, 'Content-Disposition', `attachment; filename="activity-log-${stamp}.csv"`);
+      return csv;
+    }
 
     return {
       data: entries,
@@ -92,6 +143,18 @@ export default defineEventHandler(async (event) => {
     const actor = entry.actor_id ? store.users.find((u) => u.id === entry.actor_id) : null;
     return { ...entry, actor: actor || null };
   });
+
+  if (format === 'csv') {
+    const enrichedAll = entries.map((entry) => {
+      const actor = entry.actor_id ? store.users.find((u) => u.id === entry.actor_id) : null;
+      return { ...entry, actor: actor || null };
+    });
+    const csv = toCsv(enrichedAll);
+    const stamp = new Date().toISOString().slice(0, 10);
+    setHeader(event, 'Content-Type', 'text/csv; charset=utf-8');
+    setHeader(event, 'Content-Disposition', `attachment; filename="activity-log-${stamp}.csv"`);
+    return csv;
+  }
 
   return {
     data: enriched,

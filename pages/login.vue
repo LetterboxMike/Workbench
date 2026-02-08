@@ -31,10 +31,11 @@ onMounted(async () => {
   }
 
   try {
-    await api.get('/api/auth/session');
+    // Use skipAuthRedirect to prevent redirect loops when session check fails
+    await api.get('/api/auth/session', { skipAuthRedirect: true });
     await navigateTo(nextPath.value);
   } catch {
-    // Stay in auth screen.
+    // No valid session - stay on login screen (expected behavior)
   }
 });
 

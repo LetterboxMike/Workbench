@@ -17,6 +17,7 @@ import { createId, nowIso } from '~/server/utils/id';
 import { db } from '~/server/utils/db';
 import { logActivityAuto } from '~/server/utils/activity';
 import { hashPassword } from '~/server/utils/password';
+import { assertCanRedeemOrgMemberAuto } from '~/server/utils/billing';
 import type { User } from '~/types/domain';
 
 interface RedeemMagicLinkBody {
@@ -49,6 +50,7 @@ export default defineEventHandler(async (event) => {
     // SUPABASE MODE: Create account via Supabase Auth
     const supabase = getSupabaseAnonClient();
     const serviceClient = getSupabaseServiceClient();
+    let tempPassword: string | null = null;
 
     if (!supabase || !serviceClient) {
       throw createError({ statusCode: 500, statusMessage: 'Supabase unavailable.' });
@@ -59,21 +61,16 @@ export default defineEventHandler(async (event) => {
 
     if (!user) {
       // Create new Supabase auth user
-      if (!name) {
-        throw createError({
-          statusCode: 400,
-          statusMessage: 'Name is required for new account.'
-        });
-      }
+      const resolvedName = (name || magicLink.email.split('@')[0] || 'User').trim();
 
       // Generate random password for Supabase (user won't know it - magic link only)
-      const tempPassword = createId() + createId();
+      tempPassword = createId() + createId();
 
       const { data: authData, error: authError } = await serviceClient.auth.admin.createUser({
         email: magicLink.email,
         password: tempPassword,
         email_confirm: true,
-        user_metadata: { name }
+        user_metadata: { name: resolvedName }
       });
 
       if (authError || !authData.user) {
@@ -90,6 +87,7 @@ export default defineEventHandler(async (event) => {
     // Add to organization
     const existingMember = await db.orgMembers.get(magicLink.org_id, user.id);
     if (!existingMember) {
+      await assertCanRedeemOrgMemberAuto(magicLink.org_id, true);
       await db.orgMembers.create({
         org_id: magicLink.org_id,
         user_id: user.id,
@@ -100,17 +98,19 @@ export default defineEventHandler(async (event) => {
     // Mark link as redeemed
     await redeemMagicLinkAuto(magicLink.id, user.id);
 
-    // Create session by signing in with the temp password
-    const { data: sessionData, error: sessionError } = await supabase.auth.signInWithPassword({
-      email: magicLink.email,
-      password: tempPassword
-    });
+    if (tempPassword) {
+      // New accounts can be signed in immediately because we know the generated password.
+      const { data: sessionData, error: sessionError } = await supabase.auth.signInWithPassword({
+        email: magicLink.email,
+        password: tempPassword
+      });
 
-    if (sessionError || !sessionData.session) {
-      throw createError({ statusCode: 500, statusMessage: 'Failed to create session.' });
+      if (sessionError || !sessionData.session) {
+        throw createError({ statusCode: 500, statusMessage: 'Failed to create session.' });
+      }
+
+      setSessionCookie(event, sessionData.session.access_token);
     }
-
-    setSessionCookie(event, sessionData.session.access_token);
 
     // Log activity
     await logActivityAuto({
@@ -128,7 +128,7 @@ export default defineEventHandler(async (event) => {
     return {
       data: {
         user,
-        redirect_to: '/projects'
+        redirect_to: tempPassword ? '/projects' : '/login?redirect=%2Fprojects'
       }
     };
   }
@@ -176,6 +176,7 @@ export default defineEventHandler(async (event) => {
   );
 
   if (!existingMember) {
+    await assertCanRedeemOrgMemberAuto(magicLink.org_id, false);
     store.org_members.push({
       org_id: magicLink.org_id,
       user_id: user.id,

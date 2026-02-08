@@ -21,8 +21,26 @@ const createForm = reactive({
   name: '',
   description: '',
   icon: '',
-  color: '#56605a'
+  color: '#5a5a5a'
 });
+
+const toNeutralGrayHex = (hex: string): string => {
+  const normalized = hex.replace('#', '').trim();
+  if (!/^[0-9a-fA-F]{6}$/.test(normalized)) {
+    return '#5a5a5a';
+  }
+
+  const r = parseInt(normalized.slice(0, 2), 16);
+  const g = parseInt(normalized.slice(2, 4), 16);
+  const b = parseInt(normalized.slice(4, 6), 16);
+  const avg = Math.round((r + g + b) / 3);
+  const gray = avg.toString(16).padStart(2, '0');
+  return `#${gray}${gray}${gray}`;
+};
+
+const normalizeDraftColor = () => {
+  createForm.color = toNeutralGrayHex(createForm.color);
+};
 
 const loadProjects = async () => {
   loading.value = true;
@@ -50,7 +68,7 @@ const createProject = async () => {
       name,
       description: createForm.description,
       icon: createForm.icon.trim().slice(0, 4) || name.slice(0, 2).toUpperCase(),
-      color: createForm.color
+      color: toNeutralGrayHex(createForm.color)
     });
 
     createForm.name = '';
@@ -140,6 +158,7 @@ onMounted(loadProjects);
                 v-model="createForm.color"
                 class="field-input field-input--color"
                 type="color"
+                @change="normalizeDraftColor"
               />
               <span class="color-value">{{ createForm.color }}</span>
             </div>
@@ -157,7 +176,7 @@ onMounted(loadProjects);
         </label>
 
         <div class="form-actions">
-          <UiPrimaryButton
+          <PrimaryButton
             :label="creating ? 'creating...' : 'create project'"
             :disabled="creating || !createForm.name.trim()"
             @click="createProject"
@@ -168,7 +187,7 @@ onMounted(loadProjects);
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
             </template>
-          </UiPrimaryButton>
+          </PrimaryButton>
 
           <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
         </div>
@@ -201,7 +220,7 @@ onMounted(loadProjects);
             <div class="col col-project">
               <span
                 class="project-icon"
-                :style="{ backgroundColor: project.color || '#56605a' }"
+                :style="{ backgroundColor: project.color || '#5a5a5a' }"
               >
                 {{ getProjectCode(project) }}
               </span>
@@ -261,6 +280,11 @@ onMounted(loadProjects);
 }
 
 .toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   padding: var(--space-2) var(--space-3);
   font-family: var(--font-mono);
   font-size: 12px;
@@ -466,7 +490,7 @@ onMounted(loadProjects);
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 500;
-  color: white;
+  color: var(--color-text-inverse);
   flex-shrink: 0;
 }
 
@@ -504,6 +528,12 @@ onMounted(loadProjects);
 }
 
 .open-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 var(--space-2);
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--color-text-tertiary);
@@ -513,6 +543,13 @@ onMounted(loadProjects);
 
 .open-link:hover {
   color: var(--color-text);
+}
+
+@media (max-width: 900px) {
+  .open-link {
+    min-height: 44px;
+    padding: 0 var(--space-2);
+  }
 }
 
 /* Empty State */
@@ -529,3 +566,4 @@ onMounted(loadProjects);
   color: var(--color-text-tertiary);
 }
 </style>
+

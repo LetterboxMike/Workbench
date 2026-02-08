@@ -12,6 +12,7 @@ import { nowIso } from '~/server/utils/id';
 import { asStringArray, readJsonBody } from '~/server/utils/request';
 import { getStore } from '~/server/utils/store';
 import { db } from '~/server/utils/db';
+import type { Task } from '~/types/domain';
 
 interface BulkUpdateBody {
   task_ids: string[];
@@ -59,14 +60,7 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    const updated: Array<{
-      id: string;
-      status: string;
-      priority: string;
-      assignee_id: string | null;
-      due_date: string | null;
-      tags: string[];
-    }> = [];
+    const updated: Task[] = [];
 
     for (const taskId of body.task_ids) {
       const updates: Record<string, unknown> = {};

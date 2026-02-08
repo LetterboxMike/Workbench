@@ -9,6 +9,7 @@ import {
 import { readJsonBody } from '~/server/utils/request';
 import { createMagicLinkAuto } from '~/server/utils/magic-links';
 import { logActivityAuto } from '~/server/utils/activity';
+import { assertCanInviteOrgMemberAuto } from '~/server/utils/billing';
 import type { SystemRole } from '~/types/domain';
 
 interface InviteMemberBody {
@@ -32,6 +33,8 @@ export default defineEventHandler(async (event) => {
     assertOrgSuperAdmin(orgId, user.id);
   }
 
+  await assertCanInviteOrgMemberAuto(orgId, isDb);
+
   const body = await readJsonBody<InviteMemberBody>(event);
   const email = body.email.trim().toLowerCase();
   const systemRole = body.system_role;
@@ -51,7 +54,7 @@ export default defineEventHandler(async (event) => {
 
   // Generate full URL
   const config = useRuntimeConfig();
-  const baseUrl = config.public.baseUrl || 'http://localhost:3000';
+  const baseUrl = config.public.baseUrl || process.env.NUXT_PUBLIC_BASE_URL || 'http://localhost:4000';
   const inviteUrl = `${baseUrl}/invite/${magicLink.token}`;
 
   // Log activity

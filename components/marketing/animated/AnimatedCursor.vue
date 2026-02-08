@@ -4,7 +4,7 @@
       <path
         d="M2 2 L8 18 L11 11 L18 8 Z"
         fill="currentColor"
-        stroke="white"
+        stroke="#f4f4f4"
         stroke-width="1"
       />
     </svg>
@@ -41,6 +41,6 @@ const cursorStyle = computed(() => ({
 }
 
 .animated-cursor svg {
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  filter: drop-shadow(0 2px 4px rgba(22, 22, 22, 0.2));
 }
 </style>

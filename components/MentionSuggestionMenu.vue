@@ -72,7 +72,6 @@ const getInitials = (name: string) => {
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   padding: var(--space-2);
   max-height: 240px;
   overflow-y: auto;

@@ -13,6 +13,7 @@ import { createId, nowIso } from '~/server/utils/id';
 import { ensureString, readJsonBody } from '~/server/utils/request';
 import { getStore } from '~/server/utils/store';
 import { db } from '~/server/utils/db';
+import { assertCanCreateProjectAuto } from '~/server/utils/billing';
 
 interface CreateProjectBody {
   name: string;
@@ -43,6 +44,8 @@ export default defineEventHandler(async (event) => {
     if (!orgMembership) {
       throw createError({ statusCode: 403, statusMessage: 'You do not have access to the requested organization.' });
     }
+
+    await assertCanCreateProjectAuto(orgId, true);
 
     const project = await db.projects.create({
       org_id: orgId,
@@ -91,6 +94,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, statusMessage: 'You do not have access to the requested organization.' });
   }
 
+  await assertCanCreateProjectAuto(orgId, false);
+
   const project = {
     id: createId(),
     org_id: orgId,
@@ -125,4 +130,3 @@ export default defineEventHandler(async (event) => {
 
   return { data: project };
 });
-

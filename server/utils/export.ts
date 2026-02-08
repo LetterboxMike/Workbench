@@ -33,8 +33,9 @@ async function fetchImageAsBuffer(url: string): Promise<Buffer | null> {
     // Handle relative URLs
     let fullUrl = url;
     if (url.startsWith('/')) {
-      // For local development, use localhost
-      fullUrl = `http://localhost:${process.env.PORT || 3000}${url}`;
+      // For local development, use configured dev server port
+      const localPort = process.env.NUXT_PORT || process.env.NITRO_PORT || process.env.PORT || '4000';
+      fullUrl = `http://localhost:${localPort}${url}`;
     }
 
     const response = await fetch(fullUrl, {
@@ -103,16 +104,16 @@ function getTemplateStyles(template: string = 'default'): string {
       h2 { font-size: 24px; font-weight: 600; color: #1a1a1a; margin-top: 20px; margin-bottom: 12px; }
       h3 { font-size: 18px; font-weight: 600; color: #1a1a1a; margin-top: 16px; margin-bottom: 8px; }
     `,
-    minimal: `
+      minimal: `
       body {
         font-family: 'Georgia', 'Times New Roman', serif;
         font-size: 13px;
         line-height: 1.7;
         color: #2a2a2a;
       }
-      h1 { font-size: 28px; font-weight: 400; color: #000; margin-top: 32px; margin-bottom: 16px; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px; }
-      h2 { font-size: 22px; font-weight: 400; color: #000; margin-top: 24px; margin-bottom: 12px; }
-      h3 { font-size: 16px; font-weight: 600; color: #000; margin-top: 16px; margin-bottom: 8px; }
+      h1 { font-size: 28px; font-weight: 400; color: #1c1c1c; margin-top: 32px; margin-bottom: 16px; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px; }
+      h2 { font-size: 22px; font-weight: 400; color: #1c1c1c; margin-top: 24px; margin-bottom: 12px; }
+      h3 { font-size: 16px; font-weight: 600; color: #1c1c1c; margin-top: 16px; margin-bottom: 8px; }
     `,
     professional: `
       body {
@@ -317,7 +318,7 @@ export function injectExportStyles(html: string, options: ExportOptions = {}): s
         h3 { font-size: 14pt; }
 
         a {
-          color: #000;
+          color: #1c1c1c;
           text-decoration: underline;
         }
 
@@ -595,6 +596,7 @@ async function convertNodeToDocx(node: TiptapNode, options: ExportOptions, paren
             elements.push(new Paragraph({
               children: [new ImageRun({
                 data: imageBuffer,
+                type: 'png',
                 transformation: {
                   width: 600,
                   height: 400,

@@ -4,8 +4,13 @@ import type { User as SupabaseAuthUser } from '@supabase/supabase-js';
 import type { OrgMember, Organization, ProjectRole, SystemRole, User } from '~/types/domain';
 import { createId, nowIso } from '~/server/utils/id';
 import { getDefaultUserId, getStore } from '~/server/utils/store';
-import { getSupabaseAnonClient } from '~/server/utils/supabase';
+import { getSupabaseAnonClient, getSupabaseServiceClient } from '~/server/utils/supabase';
 import { db, dbOrgMembers, dbOrganizations, dbProjectMembers, dbProjects, dbUsers, dbInvitations } from '~/server/utils/db';
+import {
+  assertCanRedeemOrgMemberAuto,
+  ensureOrgSubscriptionAuto,
+  resolvePlanEntitlements
+} from '~/server/utils/billing';
 
 const roleRank: Record<ProjectRole, number> = {
   viewer: 1,
@@ -71,6 +76,64 @@ const createPersonalOrgName = (user: User): string => {
   return `${base}'s Workspace`;
 };
 
+const ensureDefaultLocalSubscription = (orgId: string): void => {
+  const store = getStore();
+  const existing = store.org_subscriptions.find(
+    (subscription) => subscription.org_id === orgId && subscription.status !== 'canceled'
+  );
+
+  if (existing) {
+    return;
+  }
+
+  const now = new Date();
+  store.org_subscriptions.push({
+    id: createId(),
+    org_id: orgId,
+    plan_id: 'starter',
+    status: 'trialing',
+    billing_interval: 'monthly',
+    seat_count: 3,
+    trial_ends_at: new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+    current_period_start: now.toISOString(),
+    current_period_end: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    cancel_at_period_end: false,
+    canceled_at: null,
+    metadata: {},
+    created_at: nowIso(),
+    updated_at: nowIso()
+  });
+};
+
+const assertLocalSeatAvailable = (orgId: string): void => {
+  const store = getStore();
+  const subscription = store.org_subscriptions
+    .filter((item) => item.org_id === orgId && item.status !== 'canceled')
+    .sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at))[0];
+
+  if (!subscription) {
+    return;
+  }
+
+  const entitlements = resolvePlanEntitlements(subscription.plan_id);
+  const seatLimit = entitlements.max_members === null
+    ? subscription.seat_count
+    : Math.min(subscription.seat_count, entitlements.max_members);
+  const memberCount = store.org_members.filter((member) => member.org_id === orgId).length;
+
+  if (memberCount >= seatLimit) {
+    throw createError({
+      statusCode: 402,
+      statusMessage: 'No available seats on current subscription.',
+      data: {
+        code: 'SEAT_LIMIT_REACHED',
+        seat_limit: seatLimit,
+        members: memberCount
+      }
+    });
+  }
+};
+
 const createOrganization = (name: string): Organization => {
   const org: Organization = {
     id: createId(),
@@ -81,6 +144,7 @@ const createOrganization = (name: string): Organization => {
 
   const store = getStore();
   store.organizations.push(org);
+  ensureDefaultLocalSubscription(org.id);
   return org;
 };
 
@@ -133,6 +197,7 @@ const acceptPendingInvitations = (user: User): void => {
 
   for (const invite of pendingInvites) {
     if (!store.org_members.some((member) => member.org_id === invite.org_id && member.user_id === user.id)) {
+      assertLocalSeatAvailable(invite.org_id);
       store.org_members.push({
         org_id: invite.org_id,
         user_id: user.id,
@@ -179,7 +244,12 @@ export const getAuthMode = (): AuthMode => {
     return 'disabled';
   }
 
-  return getSupabaseAnonClient() ? 'supabase' : 'local';
+  // Require BOTH anon client (for auth) and service client (for DB operations)
+  // to enable Supabase mode - prevents partial configuration issues
+  const hasAnonClient = getSupabaseAnonClient() !== null;
+  const hasServiceClient = getSupabaseServiceClient() !== null;
+
+  return (hasAnonClient && hasServiceClient) ? 'supabase' : 'local';
 };
 
 export const isSupabaseAuthEnabled = (): boolean => {
@@ -525,6 +595,7 @@ const acceptPendingInvitationsDb = async (user: User): Promise<void> => {
     // Add user to org if not already a member
     const existingOrgMember = await dbOrgMembers.get(invite.org_id, user.id);
     if (!existingOrgMember) {
+      await assertCanRedeemOrgMemberAuto(invite.org_id, true);
       await dbOrgMembers.create({
         org_id: invite.org_id,
         user_id: user.id,
@@ -567,6 +638,8 @@ const ensureUserMembershipsDb = async (user: User): Promise<void> => {
     user_id: user.id,
     system_role: 'super_admin'
   });
+
+  await ensureOrgSubscriptionAuto(org.id, true);
 };
 
 export const syncUserFromAuthDb = async (authUser: Pick<SupabaseAuthUser, 'id' | 'email' | 'user_metadata'>): Promise<User> => {
@@ -642,6 +715,8 @@ export const createOrganizationForUserDb = async (userId: string, name: string, 
     user_id: userId,
     system_role: asSuperAdmin ? 'super_admin' : 'member'
   });
+
+  await ensureOrgSubscriptionAuto(org.id, true);
 
   return org;
 };
@@ -747,5 +822,6 @@ export const assertProjectAdminDb = async (projectId: string, userId: string): P
 
 // Helper to check if we should use DB functions
 export const useDbAuth = (): boolean => {
+  // getAuthMode() already verifies both anon and service clients are available
   return getAuthMode() === 'supabase';
 };

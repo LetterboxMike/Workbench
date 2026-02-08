@@ -11,6 +11,7 @@ import { createId, nowIso } from '~/server/utils/id';
 import { asStringArray, readJsonBody } from '~/server/utils/request';
 import { getStore } from '~/server/utils/store';
 import { db } from '~/server/utils/db';
+import { assertCanCreateDocumentAuto } from '~/server/utils/billing';
 
 interface CreateDocumentBody {
   title?: string;
@@ -37,6 +38,8 @@ export default defineEventHandler(async (event) => {
     if (!project) {
       throw createError({ statusCode: 404, statusMessage: 'Project not found.' });
     }
+
+    await assertCanCreateDocumentAuto(project.org_id, projectId, true);
 
     const body = await readJsonBody<CreateDocumentBody>(event);
     const title = body.title?.trim() || 'Untitled';
@@ -93,6 +96,8 @@ export default defineEventHandler(async (event) => {
   if (!project) {
     throw createError({ statusCode: 404, statusMessage: 'Project not found.' });
   }
+
+  await assertCanCreateDocumentAuto(project.org_id, projectId, false);
 
   const body = await readJsonBody<CreateDocumentBody>(event);
   const title = body.title?.trim() || 'Untitled';

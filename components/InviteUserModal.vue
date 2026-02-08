@@ -160,7 +160,7 @@ onBeforeUnmount(() => {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(22, 22, 22, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -344,7 +344,8 @@ form {
 }
 
 .message.error {
-  background: rgba(239, 68, 68, 0.1);
-  color: rgb(239, 68, 68);
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
 }
 </style>
+

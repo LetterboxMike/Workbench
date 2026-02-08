@@ -207,6 +207,11 @@ header > div:last-child {
 }
 
 header > div:last-child a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 500;
@@ -241,6 +246,11 @@ section > section:first-of-type > div:first-child {
 }
 
 section > section:first-of-type > div:first-child button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--color-text-secondary);

@@ -27,6 +27,9 @@ const emit = defineEmits<{
 .primary-button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
   background: var(--color-text);

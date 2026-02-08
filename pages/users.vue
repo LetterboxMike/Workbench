@@ -38,21 +38,18 @@ const activeOrg = computed(() =>
   session.value?.organizations.find(org => org.id === session.value?.active_org_id)
 );
 
-const currentUserRole = computed(() => {
-  if (!session.value?.user.id || !session.value.active_org_id) return null;
-  return members.value.find(
-    (m) => m.user_id === session.value.user.id
-  )?.system_role || null;
-});
-
-const isSuperAdmin = computed(() => currentUserRole.value === 'super_admin');
+const currentUserId = computed(() => session.value?.user.id || null);
+const activeOrgRole = computed(() =>
+  session.value?.organizations.find((org) => org.id === session.value?.active_org_id)?.system_role || null
+);
+const isSuperAdmin = computed(() => activeOrgRole.value === 'super_admin');
 
 const canEdit = (member: any) => {
-  return isSuperAdmin.value && member.user_id !== session.value?.user.id;
+  return isSuperAdmin.value && member.user_id !== currentUserId.value;
 };
 
 const canDelete = (member: any) => {
-  return isSuperAdmin.value && member.user_id !== session.value?.user.id;
+  return isSuperAdmin.value && member.user_id !== currentUserId.value;
 };
 
 const load = async () => {
@@ -293,12 +290,11 @@ section > p {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-bg-surface);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color var(--transition-fast);
 }
 
 .user-card:hover {
   border-color: var(--color-border-strong);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .user-avatar {
@@ -369,15 +365,15 @@ section > p {
 }
 
 .role-badge--admin {
-  background: rgba(139, 92, 246, 0.1);
-  color: rgb(139, 92, 246);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
 }
 
 .role-badge--member {
-  background: rgba(107, 114, 128, 0.1);
-  color: rgb(107, 114, 128);
-  border: 1px solid rgba(107, 114, 128, 0.2);
+  background: var(--color-bg-surface);
+  color: var(--color-text-tertiary);
+  border: 1px solid var(--color-border);
 }
 
 .empty-message {
@@ -406,6 +402,11 @@ section > p {
 }
 
 .action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 72px;
   padding: var(--space-1) var(--space-3);
   font-family: var(--font-mono);
   font-size: 11px;
@@ -423,12 +424,13 @@ section > p {
 }
 
 .action-btn.danger {
-  color: rgb(239, 68, 68);
-  border-color: rgba(239, 68, 68, 0.3);
+  color: var(--color-text-secondary);
+  border-color: var(--color-border-strong);
 }
 
 .action-btn.danger:hover {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.5);
+  background: var(--color-bg-hover);
+  border-color: var(--color-border-strong);
 }
 </style>
+

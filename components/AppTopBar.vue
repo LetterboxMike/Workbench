@@ -8,6 +8,7 @@ const props = defineProps<{
   unreadCount: number;
   currentUserName?: string | null;
   authEnabled?: boolean;
+  mobileNavOpen?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -16,11 +17,15 @@ const emit = defineEmits<{
   openAi: [];
   switchOrg: [orgId: string];
   logout: [];
+  toggleNav: [];
 }>();
 
 const { isDark } = useTheme();
 const actionsMenuOpen = ref(false);
 const route = useRoute();
+const actionsMenuRef = ref<HTMLElement | null>(null);
+const actionsButtonRef = ref<HTMLButtonElement | null>(null);
+const actionsMenuId = 'workbench-actions-menu';
 
 const currentProjectId = computed(() => {
   const param = route.params.id;
@@ -38,14 +43,41 @@ const onKeydown = (event: KeyboardEvent) => {
     event.preventDefault();
     emit('openAi');
   }
+
+  if (event.key === 'Escape') {
+    actionsMenuOpen.value = false;
+  }
+};
+
+const closeActionsMenu = () => {
+  actionsMenuOpen.value = false;
+};
+
+const toggleActionsMenu = () => {
+  actionsMenuOpen.value = !actionsMenuOpen.value;
+};
+
+const handleDocumentClick = (event: MouseEvent) => {
+  const target = event.target as Node | null;
+  if (!target) {
+    return;
+  }
+
+  if (actionsMenuRef.value?.contains(target) || actionsButtonRef.value?.contains(target)) {
+    return;
+  }
+
+  actionsMenuOpen.value = false;
 };
 
 onMounted(() => {
   window.addEventListener('keydown', onKeydown);
+  window.addEventListener('click', handleDocumentClick);
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown);
+  window.removeEventListener('click', handleDocumentClick);
 });
 
 const userInitial = computed(() => {
@@ -57,6 +89,19 @@ const userInitial = computed(() => {
 <template>
   <header class="topbar">
     <div class="topbar-left">
+      <button
+        type="button"
+        class="mobile-nav-button"
+        :aria-expanded="mobileNavOpen ? 'true' : 'false'"
+        aria-label="Toggle navigation menu"
+        @click="emit('toggleNav')"
+      >
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <line x1="4" y1="6" x2="20" y2="6" />
+          <line x1="4" y1="12" x2="20" y2="12" />
+          <line x1="4" y1="18" x2="20" y2="18" />
+        </svg>
+      </button>
       <NuxtLink to="/projects" class="wordmark">workbench</NuxtLink>
       <span class="separator">/</span>
       <template v-if="authEnabled && (organizations?.length || 0) > 1">
@@ -72,12 +117,16 @@ const userInitial = computed(() => {
     </div>
 
     <div class="topbar-right">
-      <div
-        class="actions-wrapper"
-        @mouseenter="actionsMenuOpen = true"
-        @mouseleave="actionsMenuOpen = false"
-      >
-        <button type="button" class="actions-button">
+      <div class="actions-wrapper">
+        <button
+          ref="actionsButtonRef"
+          type="button"
+          class="actions-button"
+          :aria-expanded="actionsMenuOpen ? 'true' : 'false'"
+          :aria-controls="actionsMenuId"
+          aria-haspopup="menu"
+          @click="toggleActionsMenu"
+        >
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <circle cx="12" cy="12" r="1" fill="currentColor" />
             <circle cx="12" cy="5" r="1" fill="currentColor" />
@@ -86,8 +135,14 @@ const userInitial = computed(() => {
           <span>actions</span>
         </button>
 
-        <div v-if="actionsMenuOpen" class="actions-menu">
-          <NuxtLink to="/projects" class="menu-item">
+        <div
+          v-if="actionsMenuOpen"
+          :id="actionsMenuId"
+          ref="actionsMenuRef"
+          class="actions-menu"
+          role="menu"
+        >
+          <NuxtLink to="/projects" class="menu-item" role="menuitem" @click="closeActionsMenu">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <rect x="3" y="3" width="7" height="7" />
               <rect x="14" y="3" width="7" height="7" />
@@ -98,7 +153,7 @@ const userInitial = computed(() => {
           </NuxtLink>
 
           <template v-if="currentProjectId">
-            <NuxtLink :to="`/projects/${currentProjectId}/documents`" class="menu-item">
+            <NuxtLink :to="`/projects/${currentProjectId}/documents`" class="menu-item" role="menuitem" @click="closeActionsMenu">
               <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
@@ -106,7 +161,7 @@ const userInitial = computed(() => {
               <span>New Document</span>
             </NuxtLink>
 
-            <NuxtLink :to="`/projects/${currentProjectId}/tasks/list`" class="menu-item">
+            <NuxtLink :to="`/projects/${currentProjectId}/tasks/list`" class="menu-item" role="menuitem" @click="closeActionsMenu">
               <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M9 11l3 3L22 4" />
                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
@@ -117,7 +172,7 @@ const userInitial = computed(() => {
             <div class="menu-divider" />
           </template>
 
-          <button type="button" class="menu-item" @click="emit('openAi')">
+          <button type="button" class="menu-item" role="menuitem" @click="emit('openAi'); closeActionsMenu()">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
               <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
@@ -127,7 +182,7 @@ const userInitial = computed(() => {
             <kbd>⌘J</kbd>
           </button>
 
-          <NuxtLink to="/notifications" class="menu-item">
+          <NuxtLink to="/notifications" class="menu-item" role="menuitem" @click="closeActionsMenu">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
               <path d="M13.73 21a2 2 0 0 1-3.46 0" />
@@ -201,7 +256,24 @@ const userInitial = computed(() => {
   gap: var(--space-2);
 }
 
+.mobile-nav-button {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
 .wordmark {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-1);
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 500;
@@ -222,6 +294,8 @@ const userInitial = computed(() => {
 }
 
 .org-select {
+  min-height: 44px;
+  min-width: 44px;
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--color-text-secondary);
@@ -250,7 +324,9 @@ const userInitial = computed(() => {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: 6px var(--space-3);
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: transparent;
@@ -278,7 +354,6 @@ const userInitial = computed(() => {
   background: var(--color-bg-sidebar);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   padding: var(--space-2);
   z-index: 100;
   animation: fadeIn 0.15s ease-out;
@@ -300,6 +375,7 @@ const userInitial = computed(() => {
   align-items: center;
   gap: var(--space-3);
   width: 100%;
+  min-height: 44px;
   padding: var(--space-2) var(--space-3);
   border: none;
   border-radius: var(--radius-md);
@@ -354,7 +430,9 @@ const userInitial = computed(() => {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: 6px var(--space-3);
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: transparent;
@@ -386,8 +464,10 @@ const userInitial = computed(() => {
   align-items: center;
   justify-content: center;
   position: relative;
-  width: 32px;
-  height: 32px;
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
   border: none;
   border-radius: var(--radius-md);
   background: transparent;
@@ -427,8 +507,8 @@ const userInitial = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-full);
   background: var(--color-bg-active);
   font-family: var(--font-mono);
@@ -438,6 +518,11 @@ const userInitial = computed(() => {
 }
 
 .text-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--color-text-tertiary);
@@ -452,5 +537,24 @@ const userInitial = computed(() => {
 .text-button:hover {
   background: var(--color-bg-hover);
   color: var(--color-text-secondary);
+}
+
+@media (max-width: 900px) {
+  .mobile-nav-button {
+    display: inline-flex;
+  }
+
+  .org-select,
+  .org-name {
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .search-button span,
+  .search-button kbd {
+    display: none;
+  }
 }
 </style>

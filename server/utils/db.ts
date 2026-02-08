@@ -1,17 +1,24 @@
 import type {
   ActivityLog,
+  BillingPlanId,
+  BillingInterval,
   Comment,
   CommentTargetType,
   Document,
   DocumentContent,
   Invitation,
+  InvoiceStatus,
   MagicLink,
   Notification,
+  OrgInvoice,
+  OrgSubscription,
+  OrgUsageCounter,
   Organization,
   OrgMember,
   Project,
   ProjectMember,
   ProjectRole,
+  SubscriptionStatus,
   SystemRole,
   Task,
   TaskPriority,
@@ -416,7 +423,8 @@ export const dbProjectMembers = {
     const client = getClient();
     const { data, error } = await client
       .from('project_members')
-      .select('*, user:users(*)')
+      // project_members has two FKs to users (user_id, invited_by), so the join must be explicit.
+      .select('*, user:users!project_members_user_id_fkey(*)')
       .eq('project_id', projectId);
 
     if (error) throw new Error(error.message);
@@ -1099,6 +1107,19 @@ export const dbInvitations = {
     return (data || []) as Invitation[];
   },
 
+  async listByOrg(orgId: string): Promise<Invitation[]> {
+    const client = getClient();
+    const { data, error } = await client
+      .from('invitations')
+      .select('*')
+      .eq('org_id', orgId)
+      .is('accepted_at', null)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return (data || []) as Invitation[];
+  },
+
   async getByEmail(email: string): Promise<Invitation[]> {
     const client = getClient();
     const { data, error } = await client
@@ -1266,6 +1287,256 @@ export const dbMagicLinks = {
 };
 
 // ============================================================================
+// BILLING
+// ============================================================================
+
+export const dbBillingSubscriptions = {
+  async get(id: string): Promise<OrgSubscription | null> {
+    const client = getClient();
+    const { data, error } = await client
+      .from('org_subscriptions')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw new Error(error.message);
+    return data as OrgSubscription | null;
+  },
+
+  async listByOrg(orgId: string): Promise<OrgSubscription[]> {
+    const client = getClient();
+    const { data, error } = await client
+      .from('org_subscriptions')
+      .select('*')
+      .eq('org_id', orgId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return (data || []) as OrgSubscription[];
+  },
+
+  async getActiveForOrg(orgId: string): Promise<OrgSubscription | null> {
+    const client = getClient();
+    const { data, error } = await client
+      .from('org_subscriptions')
+      .select('*')
+      .eq('org_id', orgId)
+      .neq('status', 'canceled')
+      .order('updated_at', { ascending: false })
+      .limit(1);
+
+    if (error) throw new Error(error.message);
+    return ((data || [])[0] as OrgSubscription | undefined) || null;
+  },
+
+  async create(subscription: {
+    org_id: string;
+    plan_id: BillingPlanId;
+    status: SubscriptionStatus;
+    billing_interval: BillingInterval;
+    seat_count: number;
+    trial_ends_at?: string | null;
+    current_period_start: string;
+    current_period_end: string;
+    cancel_at_period_end?: boolean;
+    canceled_at?: string | null;
+    metadata?: Record<string, unknown>;
+  }): Promise<OrgSubscription> {
+    const client = getClient();
+    const { data, error } = await client
+      .from('org_subscriptions')
+      .insert({
+        id: createId(),
+        org_id: subscription.org_id,
+        plan_id: subscription.plan_id,
+        status: subscription.status,
+        billing_interval: subscription.billing_interval,
+        seat_count: subscription.seat_count,
+        trial_ends_at: subscription.trial_ends_at || null,
+        current_period_start: subscription.current_period_start,
+        current_period_end: subscription.current_period_end,
+        cancel_at_period_end: subscription.cancel_at_period_end || false,
+        canceled_at: subscription.canceled_at || null,
+        metadata: subscription.metadata || {},
+        created_at: nowIso(),
+        updated_at: nowIso()
+      })
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data as OrgSubscription;
+  },
+
+  async update(
+    id: string,
+    updates: Partial<
+      Pick<
+        OrgSubscription,
+        | 'plan_id'
+        | 'status'
+        | 'billing_interval'
+        | 'seat_count'
+        | 'trial_ends_at'
+        | 'current_period_start'
+        | 'current_period_end'
+        | 'cancel_at_period_end'
+        | 'canceled_at'
+        | 'metadata'
+      >
+    >
+  ): Promise<OrgSubscription> {
+    const client = getClient();
+    const { data, error } = await client
+      .from('org_subscriptions')
+      .update({
+        ...updates,
+        updated_at: nowIso()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data as OrgSubscription;
+  }
+};
+
+export const dbBillingUsage = {
+  async get(orgId: string, metric: string): Promise<OrgUsageCounter | null> {
+    const client = getClient();
+    const { data, error } = await client
+      .from('org_usage_counters')
+      .select('*')
+      .eq('org_id', orgId)
+      .eq('metric', metric)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw new Error(error.message);
+    return data as OrgUsageCounter | null;
+  },
+
+  async listByOrg(orgId: string): Promise<OrgUsageCounter[]> {
+    const client = getClient();
+    const { data, error } = await client
+      .from('org_usage_counters')
+      .select('*')
+      .eq('org_id', orgId)
+      .order('metric', { ascending: true });
+
+    if (error) throw new Error(error.message);
+    return (data || []) as OrgUsageCounter[];
+  },
+
+  async upsert(orgId: string, metric: string, value: number): Promise<OrgUsageCounter> {
+    const client = getClient();
+    const payload = {
+      org_id: orgId,
+      metric,
+      value,
+      updated_at: nowIso()
+    };
+
+    const { data, error } = await client
+      .from('org_usage_counters')
+      .upsert(payload, { onConflict: 'org_id,metric' })
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data as OrgUsageCounter;
+  },
+
+  async increment(orgId: string, metric: string, delta: number): Promise<OrgUsageCounter> {
+    const existing = await this.get(orgId, metric);
+    const nextValue = Math.max(0, Number(existing?.value || 0) + delta);
+    return this.upsert(orgId, metric, nextValue);
+  }
+};
+
+export const dbBillingInvoices = {
+  async get(id: string): Promise<OrgInvoice | null> {
+    const client = getClient();
+    const { data, error } = await client
+      .from('org_invoices')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw new Error(error.message);
+    return data as OrgInvoice | null;
+  },
+
+  async listByOrg(orgId: string): Promise<OrgInvoice[]> {
+    const client = getClient();
+    const { data, error } = await client
+      .from('org_invoices')
+      .select('*')
+      .eq('org_id', orgId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return (data || []) as OrgInvoice[];
+  },
+
+  async create(invoice: {
+    org_id: string;
+    subscription_id?: string | null;
+    status: InvoiceStatus;
+    amount_cents: number;
+    currency?: string;
+    due_at?: string | null;
+    paid_at?: string | null;
+    period_start: string;
+    period_end: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<OrgInvoice> {
+    const client = getClient();
+    const { data, error } = await client
+      .from('org_invoices')
+      .insert({
+        id: createId(),
+        org_id: invoice.org_id,
+        subscription_id: invoice.subscription_id || null,
+        status: invoice.status,
+        amount_cents: invoice.amount_cents,
+        currency: (invoice.currency || 'usd').toLowerCase(),
+        due_at: invoice.due_at || null,
+        paid_at: invoice.paid_at || null,
+        period_start: invoice.period_start,
+        period_end: invoice.period_end,
+        metadata: invoice.metadata || {},
+        created_at: nowIso(),
+        updated_at: nowIso()
+      })
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data as OrgInvoice;
+  },
+
+  async update(
+    id: string,
+    updates: Partial<Pick<OrgInvoice, 'status' | 'due_at' | 'paid_at' | 'metadata'>>
+  ): Promise<OrgInvoice> {
+    const client = getClient();
+    const { data, error } = await client
+      .from('org_invoices')
+      .update({
+        ...updates,
+        updated_at: nowIso()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data as OrgInvoice;
+  }
+};
+
+// ============================================================================
 // SEARCH
 // ============================================================================
 
@@ -1411,6 +1682,9 @@ export const db = {
   activity: dbActivity,
   invitations: dbInvitations,
   magicLinks: dbMagicLinks,
+  billingSubscriptions: dbBillingSubscriptions,
+  billingUsage: dbBillingUsage,
+  billingInvoices: dbBillingInvoices,
   search: dbSearch,
   adminStats: dbAdminStats
 };

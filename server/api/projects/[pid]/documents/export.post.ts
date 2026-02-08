@@ -113,7 +113,7 @@ export default defineEventHandler(async (event) => {
           return;
         }
 
-        content = await db.documentContent.get(documentId);
+        content = (await db.documentContent.get(documentId)) ?? undefined;
       } else {
         const store = getStore();
         document = store.documents.find(d => d.id === documentId && d.project_id === projectId);
@@ -181,13 +181,13 @@ export default defineEventHandler(async (event) => {
       const project = await db.projects.get(projectId);
       if (project) {
         await logActivity({
-          org_id: project.org_id,
-          project_id: projectId,
-          actor_id: user.id,
-          actor_type: 'user',
+          orgId: project.org_id,
+          projectId,
+          actorId: user.id,
+          actorType: 'user',
           action: 'documents_batch_exported',
-          target_type: 'project',
-          target_id: projectId,
+          targetType: 'project',
+          targetId: projectId,
           metadata: {
             format,
             document_count: documentIds.length,
@@ -200,13 +200,13 @@ export default defineEventHandler(async (event) => {
       const project = store.projects.find(p => p.id === projectId);
       if (project) {
         await logActivity({
-          org_id: project.org_id,
-          project_id: projectId,
-          actor_id: user.id,
-          actor_type: 'user',
+          orgId: project.org_id,
+          projectId,
+          actorId: user.id,
+          actorType: 'user',
           action: 'documents_batch_exported',
-          target_type: 'project',
-          target_id: projectId,
+          targetType: 'project',
+          targetId: projectId,
           metadata: {
             format,
             document_count: documentIds.length,

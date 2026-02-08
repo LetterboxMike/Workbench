@@ -64,7 +64,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000/projects` in demo mode, or `http://localhost:3000/login` when Supabase auth is configured.
+Open `http://localhost:4000/projects` in demo mode, or `http://localhost:4000/login` when Supabase auth is configured.
 
 ## Quality Commands
 

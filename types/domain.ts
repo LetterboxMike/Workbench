@@ -12,6 +12,10 @@ export type TaskStatus =
 export type TaskPriority = 'none' | 'low' | 'medium' | 'high' | 'urgent';
 
 export type CommentTargetType = 'document' | 'task' | 'block';
+export type BillingPlanId = 'starter' | 'growth' | 'enterprise';
+export type SubscriptionStatus = 'trialing' | 'active' | 'past_due' | 'paused' | 'canceled';
+export type BillingInterval = 'monthly' | 'annual';
+export type InvoiceStatus = 'draft' | 'open' | 'paid' | 'void' | 'uncollectible';
 
 export interface Organization {
   id: string;
@@ -95,6 +99,23 @@ export interface Task {
   is_detached: boolean;
 }
 
+export type FileAttachmentType = 'project' | 'document' | 'task';
+
+export interface ProjectFile {
+  id: string;
+  project_id: string;
+  attachment_type: FileAttachmentType;
+  attachment_id?: string | null;
+  filename: string;
+  original_filename: string;
+  mime_type: string;
+  size_bytes: number;
+  url: string;
+  uploaded_by: string;
+  created_at: string;
+  description?: string | null;
+}
+
 export interface Comment {
   id: string;
   target_type: CommentTargetType;
@@ -166,6 +187,46 @@ export interface MagicLink {
   redeemed_by?: string | null;
 }
 
+export interface OrgSubscription {
+  id: string;
+  org_id: string;
+  plan_id: BillingPlanId;
+  status: SubscriptionStatus;
+  billing_interval: BillingInterval;
+  seat_count: number;
+  trial_ends_at?: string | null;
+  current_period_start: string;
+  current_period_end: string;
+  cancel_at_period_end: boolean;
+  canceled_at?: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrgUsageCounter {
+  org_id: string;
+  metric: string;
+  value: number;
+  updated_at: string;
+}
+
+export interface OrgInvoice {
+  id: string;
+  org_id: string;
+  subscription_id?: string | null;
+  status: InvoiceStatus;
+  amount_cents: number;
+  currency: string;
+  due_at?: string | null;
+  paid_at?: string | null;
+  period_start: string;
+  period_end: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface WorkbenchStore {
   organizations: Organization[];
   users: User[];
@@ -175,11 +236,15 @@ export interface WorkbenchStore {
   documents: Document[];
   document_content: DocumentContent[];
   tasks: Task[];
+  project_files: ProjectFile[];
   comments: Comment[];
   notifications: Notification[];
   activity_log: ActivityLog[];
   invitations: Invitation[];
   magic_links: MagicLink[];
+  org_subscriptions: OrgSubscription[];
+  org_usage_counters: OrgUsageCounter[];
+  org_invoices: OrgInvoice[];
   local_auth_accounts: LocalAuthAccount[];
   local_auth_sessions: LocalAuthSession[];
 }

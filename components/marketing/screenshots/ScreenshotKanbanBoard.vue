@@ -14,6 +14,7 @@
             <div class="card-meta">
               <div class="card-meta-left">
                 <PriorityDot priority="medium" />
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" alt="Sarah" class="card-avatar" />
                 <span class="card-assignee">Sarah</span>
               </div>
               <span class="card-due">Mar 25</span>
@@ -25,6 +26,7 @@
             <div class="card-meta">
               <div class="card-meta-left">
                 <PriorityDot priority="low" />
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Michael" alt="Michael" class="card-avatar" />
                 <span class="card-assignee">Michael</span>
               </div>
               <span class="card-due">Mar 22</span>
@@ -53,6 +55,7 @@
             <div class="card-meta">
               <div class="card-meta-left">
                 <PriorityDot priority="high" />
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Michael" alt="Michael" class="card-avatar" />
                 <span class="card-assignee">Michael</span>
               </div>
               <span class="card-due">Mar 20</span>
@@ -81,6 +84,7 @@
             <div class="card-meta">
               <div class="card-meta-left">
                 <PriorityDot priority="urgent" />
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" alt="Sarah" class="card-avatar" />
                 <span class="card-assignee">Sarah</span>
               </div>
               <span class="card-due urgent">Mar 15</span>
@@ -92,6 +96,7 @@
             <div class="card-meta">
               <div class="card-meta-left">
                 <PriorityDot priority="high" />
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jake" alt="Jake" class="card-avatar" />
                 <span class="card-assignee">Jake</span>
               </div>
               <span class="card-due">Mar 18</span>
@@ -120,6 +125,7 @@
             <div class="card-meta">
               <div class="card-meta-left">
                 <PriorityDot priority="medium" />
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jake" alt="Jake" class="card-avatar" />
                 <span class="card-assignee">Jake</span>
               </div>
               <span class="card-due">Mar 12</span>
@@ -140,6 +146,7 @@
 </template>
 
 <script setup lang="ts">
+import PriorityDot from '~/components/ui/PriorityDot.vue';
 // Static kanban board screenshot
 </script>
 
@@ -258,6 +265,14 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+}
+
+.card-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
 }
 
 .card-assignee {

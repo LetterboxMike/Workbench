@@ -1,0 +1,509 @@
+{
+  "timestamp": "2026-02-06T09:39:35.561Z",
+  "projectId": "0f0ec94f-b5a5-4e6f-b6b5-449230a89afc",
+  "docId": "c42fa11e-b38c-47fc-bf01-a4e6ec4cf723",
+  "results": [
+    {
+      "viewport": "375",
+      "route": "/projects",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "375",
+      "route": "/notifications",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "375",
+      "route": "/users",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "375",
+      "route": "/settings",
+      "missingButtonCount": 0,
+      "missingInputCount": 3,
+      "missingButtons": [],
+      "missingInputs": [
+        {
+          "tag": "select",
+          "type": "",
+          "w": 150,
+          "h": 36,
+          "placeholder": ""
+        },
+        {
+          "tag": "input",
+          "type": "checkbox",
+          "w": 13,
+          "h": 20,
+          "placeholder": ""
+        },
+        {
+          "tag": "select",
+          "type": "",
+          "w": 150,
+          "h": 36,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "viewport": "375",
+      "route": "/admin",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "375",
+      "route": "/admin/members",
+      "missingButtonCount": 0,
+      "missingInputCount": 1,
+      "missingButtons": [],
+      "missingInputs": [
+        {
+          "tag": "input",
+          "type": "text",
+          "w": 59,
+          "h": 37.5,
+          "placeholder": "Search by name or email..."
+        }
+      ]
+    },
+    {
+      "viewport": "375",
+      "route": "/admin/activity",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "375",
+      "route": "/admin/settings",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "375",
+      "route": "/projects/0f0ec94f-b5a5-4e6f-b6b5-449230a89afc",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "375",
+      "route": "/projects/0f0ec94f-b5a5-4e6f-b6b5-449230a89afc/tasks",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "375",
+      "route": "/projects/0f0ec94f-b5a5-4e6f-b6b5-449230a89afc/tasks/list",
+      "missingButtonCount": 5,
+      "missingInputCount": 4,
+      "missingButtons": [
+        {
+          "w": 16,
+          "h": 16
+        },
+        {
+          "w": 16,
+          "h": 16
+        },
+        {
+          "w": 16,
+          "h": 16
+        },
+        {
+          "w": 16,
+          "h": 16
+        },
+        {
+          "w": 16,
+          "h": 16
+        }
+      ],
+      "missingInputs": [
+        {
+          "tag": "input",
+          "type": "text",
+          "w": 200,
+          "h": 36,
+          "placeholder": "search tasks..."
+        },
+        {
+          "tag": "select",
+          "type": "",
+          "w": 133,
+          "h": 36,
+          "placeholder": ""
+        },
+        {
+          "tag": "select",
+          "type": "",
+          "w": 147,
+          "h": 36,
+          "placeholder": ""
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "w": 198,
+          "h": 55,
+          "placeholder": "quick add task..."
+        }
+      ]
+    },
+    {
+      "viewport": "375",
+      "route": "/projects/0f0ec94f-b5a5-4e6f-b6b5-449230a89afc/tasks/kanban",
+      "missingButtonCount": 0,
+      "missingInputCount": 5,
+      "missingButtons": [],
+      "missingInputs": [
+        {
+          "tag": "input",
+          "type": "",
+          "w": 180,
+          "h": 38.5,
+          "placeholder": "add backlog task..."
+        },
+        {
+          "tag": "input",
+          "type": "",
+          "w": 180,
+          "h": 38.5,
+          "placeholder": "add todo task..."
+        },
+        {
+          "tag": "input",
+          "type": "",
+          "w": 180,
+          "h": 38.5,
+          "placeholder": "add in progress task..."
+        },
+        {
+          "tag": "input",
+          "type": "",
+          "w": 180,
+          "h": 38.5,
+          "placeholder": "add in review task..."
+        },
+        {
+          "tag": "input",
+          "type": "",
+          "w": 180,
+          "h": 38.5,
+          "placeholder": "add done task..."
+        }
+      ]
+    },
+    {
+      "viewport": "375",
+      "route": "/projects/0f0ec94f-b5a5-4e6f-b6b5-449230a89afc/tasks/calendar",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "375",
+      "route": "/projects/0f0ec94f-b5a5-4e6f-b6b5-449230a89afc/documents",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "375",
+      "route": "/projects/0f0ec94f-b5a5-4e6f-b6b5-449230a89afc/documents/c42fa11e-b38c-47fc-bf01-a4e6ec4cf723",
+      "missingButtonCount": 0,
+      "missingInputCount": 2,
+      "missingButtons": [],
+      "missingInputs": [
+        {
+          "tag": "input",
+          "type": "",
+          "w": 197.4,
+          "h": 30,
+          "placeholder": ""
+        },
+        {
+          "tag": "input",
+          "type": "",
+          "w": 197,
+          "h": 37.5,
+          "placeholder": "Create linked task"
+        }
+      ]
+    },
+    {
+      "viewport": "1024",
+      "route": "/projects",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "1024",
+      "route": "/notifications",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "1024",
+      "route": "/users",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "1024",
+      "route": "/settings",
+      "missingButtonCount": 0,
+      "missingInputCount": 3,
+      "missingButtons": [],
+      "missingInputs": [
+        {
+          "tag": "select",
+          "type": "",
+          "w": 150,
+          "h": 36,
+          "placeholder": ""
+        },
+        {
+          "tag": "input",
+          "type": "checkbox",
+          "w": 20,
+          "h": 20,
+          "placeholder": ""
+        },
+        {
+          "tag": "select",
+          "type": "",
+          "w": 150,
+          "h": 36,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "viewport": "1024",
+      "route": "/admin",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "1024",
+      "route": "/admin/members",
+      "missingButtonCount": 0,
+      "missingInputCount": 1,
+      "missingButtons": [],
+      "missingInputs": [
+        {
+          "tag": "input",
+          "type": "text",
+          "w": 400,
+          "h": 37.5,
+          "placeholder": "Search by name or email..."
+        }
+      ]
+    },
+    {
+      "viewport": "1024",
+      "route": "/admin/activity",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "1024",
+      "route": "/admin/settings",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "1024",
+      "route": "/projects/0f0ec94f-b5a5-4e6f-b6b5-449230a89afc",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "1024",
+      "route": "/projects/0f0ec94f-b5a5-4e6f-b6b5-449230a89afc/tasks",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "1024",
+      "route": "/projects/0f0ec94f-b5a5-4e6f-b6b5-449230a89afc/tasks/list",
+      "missingButtonCount": 5,
+      "missingInputCount": 4,
+      "missingButtons": [
+        {
+          "w": 16,
+          "h": 16
+        },
+        {
+          "w": 16,
+          "h": 16
+        },
+        {
+          "w": 16,
+          "h": 16
+        },
+        {
+          "w": 16,
+          "h": 16
+        },
+        {
+          "w": 16,
+          "h": 16
+        }
+      ],
+      "missingInputs": [
+        {
+          "tag": "input",
+          "type": "text",
+          "w": 200,
+          "h": 36,
+          "placeholder": "search tasks..."
+        },
+        {
+          "tag": "select",
+          "type": "",
+          "w": 133,
+          "h": 36,
+          "placeholder": ""
+        },
+        {
+          "tag": "select",
+          "type": "",
+          "w": 147,
+          "h": 36,
+          "placeholder": ""
+        },
+        {
+          "tag": "input",
+          "type": "text",
+          "w": 198,
+          "h": 55,
+          "placeholder": "quick add task..."
+        }
+      ]
+    },
+    {
+      "viewport": "1024",
+      "route": "/projects/0f0ec94f-b5a5-4e6f-b6b5-449230a89afc/tasks/kanban",
+      "missingButtonCount": 0,
+      "missingInputCount": 5,
+      "missingButtons": [],
+      "missingInputs": [
+        {
+          "tag": "input",
+          "type": "",
+          "w": 180,
+          "h": 38.5,
+          "placeholder": "add backlog task..."
+        },
+        {
+          "tag": "input",
+          "type": "",
+          "w": 180,
+          "h": 38.5,
+          "placeholder": "add todo task..."
+        },
+        {
+          "tag": "input",
+          "type": "",
+          "w": 180,
+          "h": 38.5,
+          "placeholder": "add in progress task..."
+        },
+        {
+          "tag": "input",
+          "type": "",
+          "w": 180,
+          "h": 38.5,
+          "placeholder": "add in review task..."
+        },
+        {
+          "tag": "input",
+          "type": "",
+          "w": 180,
+          "h": 38.5,
+          "placeholder": "add done task..."
+        }
+      ]
+    },
+    {
+      "viewport": "1024",
+      "route": "/projects/0f0ec94f-b5a5-4e6f-b6b5-449230a89afc/tasks/calendar",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "1024",
+      "route": "/projects/0f0ec94f-b5a5-4e6f-b6b5-449230a89afc/documents",
+      "missingButtonCount": 0,
+      "missingInputCount": 0,
+      "missingButtons": [],
+      "missingInputs": []
+    },
+    {
+      "viewport": "1024",
+      "route": "/projects/0f0ec94f-b5a5-4e6f-b6b5-449230a89afc/documents/c42fa11e-b38c-47fc-bf01-a4e6ec4cf723",
+      "missingButtonCount": 0,
+      "missingInputCount": 2,
+      "missingButtons": [],
+      "missingInputs": [
+        {
+          "tag": "input",
+          "type": "",
+          "w": 438.8,
+          "h": 30,
+          "placeholder": ""
+        },
+        {
+          "tag": "input",
+          "type": "",
+          "w": 197,
+          "h": 37.5,
+          "placeholder": "Create linked task"
+        }
+      ]
+    }
+  ]
+}

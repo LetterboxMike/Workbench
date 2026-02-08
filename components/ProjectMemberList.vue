@@ -152,7 +152,7 @@ watch(
     <div class="invite-section">
       <UiSectionHeader label="invite member" />
       <form class="invite-form" @submit.prevent="inviteMember">
-        <UiInputField
+        <InputField
           v-model="inviteEmail"
           type="email"
           placeholder="email@example.com"
@@ -163,7 +163,7 @@ watch(
             {{ role.label }}
           </option>
         </select>
-        <UiPrimaryButton
+        <PrimaryButton
           label="invite"
           :loading="inviting"
           :disabled="!inviteEmail.trim()"
@@ -333,7 +333,7 @@ watch(
 .error-message {
   font-family: var(--font-mono);
   font-size: 12px;
-  color: #dc2626;
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
@@ -487,7 +487,7 @@ watch(
 
 .remove-button:hover {
   background: var(--color-bg-hover);
-  color: #dc2626;
+  color: var(--color-text);
 }
 
 .remove-button:disabled {
@@ -516,13 +516,13 @@ watch(
 }
 
 .confirm-yes {
-  background: #dc2626;
-  color: white;
+  background: var(--color-text);
+  color: var(--color-text-inverse);
   border: none;
 }
 
 .confirm-yes:hover {
-  background: #b91c1c;
+  opacity: 0.9;
 }
 
 .confirm-no {
@@ -619,3 +619,4 @@ watch(
   }
 }
 </style>
+

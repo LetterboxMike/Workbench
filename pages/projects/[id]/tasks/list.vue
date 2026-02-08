@@ -20,6 +20,7 @@ const selected = ref<string[]>([]);
 const draft = ref('');
 
 const hasSelection = computed(() => selected.value.length > 0);
+const isTaskSelected = (taskId: string) => selected.value.includes(taskId);
 
 const viewTabs = [
   { key: 'list', label: 'list' },
@@ -54,6 +55,8 @@ const loadTasks = async () => {
     );
 
     tasks.value = response.data;
+    const visibleTaskIds = new Set(tasks.value.map((task) => task.id));
+    selected.value = selected.value.filter((id) => visibleTaskIds.has(id));
   } finally {
     loading.value = false;
   }
@@ -80,6 +83,17 @@ const toggleTaskStatus = async (task: Task) => {
   const newStatus = task.status === 'done' ? 'todo' : 'done';
   await api.patch(`/api/tasks/${task.id}`, { status: newStatus });
   await loadTasks();
+};
+
+const toggleTaskSelection = (taskId: string, checked: boolean) => {
+  if (checked) {
+    if (!selected.value.includes(taskId)) {
+      selected.value = [...selected.value, taskId];
+    }
+    return;
+  }
+
+  selected.value = selected.value.filter((id) => id !== taskId);
 };
 
 const bulkSetStatus = async (status: string) => {
@@ -121,10 +135,11 @@ watch([projectId, queryString], loadTasks, { immediate: true });
           v-model="filters.q"
           class="search-input"
           type="text"
+          aria-label="Search tasks"
           placeholder="search tasks..."
         />
 
-        <select v-model="filters.status" class="filter-select">
+        <select v-model="filters.status" class="filter-select" aria-label="Filter by status">
           <option value="">all statuses</option>
           <option value="backlog">backlog</option>
           <option value="todo">todo</option>
@@ -134,7 +149,7 @@ watch([projectId, queryString], loadTasks, { immediate: true });
           <option value="cancelled">cancelled</option>
         </select>
 
-        <select v-model="filters.priority" class="filter-select">
+        <select v-model="filters.priority" class="filter-select" aria-label="Filter by priority">
           <option value="">all priorities</option>
           <option value="none">no priority</option>
           <option value="low">low</option>
@@ -149,16 +164,17 @@ watch([projectId, queryString], loadTasks, { immediate: true });
           v-model="draft"
           class="add-input"
           type="text"
+          aria-label="Quick add task title"
           placeholder="quick add task..."
         />
-        <UiPrimaryButton label="add task" @click="createTask">
+        <PrimaryButton label="add task" @click="createTask">
           <template #icon>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
           </template>
-        </UiPrimaryButton>
+        </PrimaryButton>
       </form>
     </div>
 
@@ -184,7 +200,9 @@ watch([projectId, queryString], loadTasks, { immediate: true });
           v-for="task in tasks"
           :key="task.id"
           :task="task"
-          @toggle="toggleTaskStatus(task)"
+          :selected="isTaskSelected(task.id)"
+          @toggle-selected="toggleTaskSelection(task.id, $event)"
+          @toggle-status="toggleTaskStatus(task)"
         />
       </div>
     </div>
@@ -216,6 +234,9 @@ watch([projectId, queryString], loadTasks, { immediate: true });
 
 .search-input,
 .filter-select {
+  min-height: 44px;
+  min-width: 44px;
+  box-sizing: border-box;
   padding: var(--space-2) var(--space-3);
   background: var(--color-bg-input);
   border: 1px solid var(--color-border);
@@ -244,6 +265,9 @@ watch([projectId, queryString], loadTasks, { immediate: true });
 
 .add-input {
   width: 200px;
+  min-height: 44px;
+  min-width: 44px;
+  box-sizing: border-box;
   padding: var(--space-2) var(--space-3);
   background: var(--color-bg-input);
   border: 1px solid var(--color-border);
@@ -279,6 +303,11 @@ watch([projectId, queryString], loadTasks, { immediate: true });
 }
 
 .bulk-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   padding: var(--space-1) var(--space-3);
   background: transparent;
   border: 1px solid var(--color-border);

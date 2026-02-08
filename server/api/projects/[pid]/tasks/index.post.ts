@@ -12,6 +12,7 @@ import { createId, nowIso } from '~/server/utils/id';
 import { asStringArray, ensureString, readJsonBody } from '~/server/utils/request';
 import { getStore } from '~/server/utils/store';
 import { db } from '~/server/utils/db';
+import { assertCanCreateTaskAuto } from '~/server/utils/billing';
 import type { Task, TaskPriority, TaskStatus } from '~/types/domain';
 
 interface CreateTaskBody {
@@ -53,6 +54,8 @@ export default defineEventHandler(async (event) => {
     if (!project) {
       throw createError({ statusCode: 404, statusMessage: 'Project not found.' });
     }
+
+    await assertCanCreateTaskAuto(project.org_id, projectId, true);
 
     // Validate source_document_id
     if (sourceDocumentId) {
@@ -122,6 +125,8 @@ export default defineEventHandler(async (event) => {
   if (!project) {
     throw createError({ statusCode: 404, statusMessage: 'Project not found.' });
   }
+
+  await assertCanCreateTaskAuto(project.org_id, projectId, false);
 
   if (sourceDocumentId) {
     const sourceDocument = store.documents.find(
@@ -194,4 +199,3 @@ export default defineEventHandler(async (event) => {
     data: task
   };
 });
-

@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-02-06T09:40:04.215Z",
+  "orgId": "8f657dc3-3e04-4e44-a2df-7f9fbf8f7301",
+  "inviteStatus": 200,
+  "inviteUrl": "http://localhost:3000/invite/7ba6676d-5eab-46f4-a988-4394eab1271981620231-5f49-4cfd-af1f-c7438dcea5a0",
+  "invitePath": "/invite/7ba6676d-5eab-46f4-a988-4394eab1271981620231-5f49-4cfd-af1f-c7438dcea5a0",
+  "info": {
+    "path": "/invite/7ba6676d-5eab-46f4-a988-4394eab1271981620231-5f49-4cfd-af1f-c7438dcea5a0",
+    "h1": "Welcome to Workbench",
+    "hasAccept": true
+  }
+}

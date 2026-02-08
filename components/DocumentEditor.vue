@@ -29,6 +29,8 @@ const api = useWorkbenchApi();
 const saving = ref(false);
 const lastSavedAt = ref('');
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
+let pendingSnapshot: Record<string, unknown> | null = null;
+let pendingDocumentId: string | null = null;
 
 // Link modal state
 const showLinkModal = ref(false);
@@ -51,9 +53,108 @@ const tableRows = ref(3);
 const tableColumns = ref(3);
 
 // Comment state
-const showCommentSidebar = ref(true);
+const showCommentSidebar = ref(false);
 const pendingCommentAnchor = ref<any>(null);
 const commentSidebarRef = ref<InstanceType<typeof CommentSidebar> | null>(null);
+
+const persistSnapshot = async (targetDocumentId: string, snapshot: Record<string, unknown>) => {
+  saving.value = true;
+
+  try {
+    await api.put(`/api/documents/${targetDocumentId}/content`, {
+      last_snapshot: snapshot
+    });
+
+    lastSavedAt.value = new Date().toLocaleTimeString();
+
+    if (targetDocumentId === props.documentId) {
+      emit('saved', lastSavedAt.value);
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Autosave failed.';
+
+    if (targetDocumentId === props.documentId) {
+      emit('error', message);
+    }
+  } finally {
+    saving.value = false;
+  }
+};
+
+const sendAutosaveKeepalive = (targetDocumentId: string, snapshot: Record<string, unknown>) => {
+  if (!import.meta.client) {
+    return;
+  }
+
+  const payload = JSON.stringify({
+    last_snapshot: snapshot
+  });
+
+  void fetch(`/api/documents/${targetDocumentId}/content`, {
+    method: 'PUT',
+    headers: {
+      'content-type': 'application/json'
+    },
+    credentials: 'include',
+    keepalive: true,
+    body: payload
+  }).catch(() => {
+    // Best effort save during unload.
+  });
+};
+
+const flushAutosave = async () => {
+  if (!pendingSnapshot || !pendingDocumentId) {
+    return;
+  }
+
+  const snapshot = pendingSnapshot;
+  const targetDocumentId = pendingDocumentId;
+  pendingSnapshot = null;
+  pendingDocumentId = null;
+
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+  }
+
+  await persistSnapshot(targetDocumentId, snapshot);
+};
+
+const flushAutosaveBestEffort = () => {
+  if (!pendingSnapshot || !pendingDocumentId) {
+    return;
+  }
+
+  const snapshot = pendingSnapshot;
+  const targetDocumentId = pendingDocumentId;
+  pendingSnapshot = null;
+  pendingDocumentId = null;
+
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+  }
+
+  sendAutosaveKeepalive(targetDocumentId, snapshot);
+};
+
+const queueAutosave = (targetDocumentId: string, snapshot: Record<string, unknown>) => {
+  pendingDocumentId = targetDocumentId;
+  pendingSnapshot = snapshot;
+
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+  }
+
+  saveTimer = setTimeout(async () => {
+    await flushAutosave();
+  }, 360);
+};
+
+const handlePageHide = () => {
+  flushAutosaveBestEffort();
+};
 
 const editor = useEditor({
   extensions: [
@@ -96,40 +197,14 @@ const editor = useEditor({
   content: props.initialContent,
   autofocus: 'end',
   onUpdate: () => {
-    if (saveTimer) {
-      clearTimeout(saveTimer);
+    const targetDocumentId = props.documentId;
+    const snapshot = editor.value?.getJSON() as Record<string, unknown> | undefined;
+
+    if (!snapshot) {
+      return;
     }
 
-    const targetDocumentId = props.documentId;
-    const snapshot = editor.value?.getJSON();
-
-    saveTimer = setTimeout(async () => {
-      if (!snapshot) {
-        return;
-      }
-
-      saving.value = true;
-
-      try {
-        await api.put(`/api/documents/${targetDocumentId}/content`, {
-          last_snapshot: snapshot
-        });
-
-        lastSavedAt.value = new Date().toLocaleTimeString();
-
-        if (targetDocumentId === props.documentId) {
-          emit('saved', lastSavedAt.value);
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Autosave failed.';
-
-        if (targetDocumentId === props.documentId) {
-          emit('error', message);
-        }
-      } finally {
-        saving.value = false;
-      }
-    }, 360);
+    queueAutosave(targetDocumentId, snapshot);
   }
 });
 
@@ -151,18 +226,31 @@ watch(
 
 watch(
   () => props.documentId,
-  () => {
-    if (saveTimer) {
-      clearTimeout(saveTimer);
-      saveTimer = null;
-    }
+  async () => {
+    await flushAutosave();
   }
 );
 
 onBeforeUnmount(() => {
-  if (saveTimer) {
-    clearTimeout(saveTimer);
+  if (import.meta.client) {
+    window.removeEventListener('pagehide', handlePageHide);
+    window.removeEventListener('beforeunload', handlePageHide);
   }
+
+  flushAutosaveBestEffort();
+});
+
+onBeforeRouteLeave(async () => {
+  await flushAutosave();
+});
+
+onMounted(() => {
+  if (!import.meta.client) {
+    return;
+  }
+
+  window.addEventListener('pagehide', handlePageHide);
+  window.addEventListener('beforeunload', handlePageHide);
 });
 
 const setHeading = (level: 1 | 2 | 3) => editor.value?.chain().focus().toggleHeading({ level }).run();
@@ -234,7 +322,7 @@ const insertImage = async () => {
       const formData = new FormData();
       formData.append('file', imageFile.value);
 
-      const response = await api.post('/api/uploads', formData);
+      const response = await api.post<{ data: { url: string } }>('/api/uploads', formData);
       finalUrl = response.data.url;
     } catch (error) {
       emit('error', 'Failed to upload image');
@@ -273,7 +361,7 @@ const handleFileUpload = async (event: Event) => {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await api.post('/api/uploads', formData);
+    const response = await api.post<{ data: { url: string; filename: string } }>('/api/uploads', formData);
     const fileUrl = response.data.url;
     const fileName = response.data.filename;
 
@@ -375,6 +463,7 @@ const handleCommentCreated = (comment: any) => {
   <div :class="['editor-container', { 'with-sidebar': showCommentSidebar }]">
     <div class="editor-main">
       <div class="toolbar">
+      <!-- Text formatting -->
       <div class="toolbar-group">
         <button
           type="button"
@@ -383,7 +472,9 @@ const handleCommentCreated = (comment: any) => {
           @click="editor?.chain().focus().toggleBold().run()"
           title="Bold (Ctrl+B)"
         >
-          Bold
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M4 2h4.5a3.5 3.5 0 0 1 2.45 6A3.5 3.5 0 0 1 9 14H4V2zm2 2v3h2.5a1.5 1.5 0 0 0 0-3H6zm0 5v3h3a1.5 1.5 0 0 0 0-3H6z"/>
+          </svg>
         </button>
         <button
           type="button"
@@ -392,10 +483,15 @@ const handleCommentCreated = (comment: any) => {
           @click="editor?.chain().focus().toggleItalic().run()"
           title="Italic (Ctrl+I)"
         >
-          Italic
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M6 2h6v2h-2.2l-2.6 8H10v2H4v-2h2.2l2.6-8H6V2z"/>
+          </svg>
         </button>
       </div>
 
+      <span class="toolbar-divider"></span>
+
+      <!-- Headings -->
       <div class="toolbar-group">
         <button
           type="button"
@@ -403,29 +499,26 @@ const handleCommentCreated = (comment: any) => {
           :class="{ active: isHeadingActive(1) }"
           @click="setHeading(1)"
           title="Heading 1"
-        >
-          H1
-        </button>
+        >H1</button>
         <button
           type="button"
           :disabled="!editor"
           :class="{ active: isHeadingActive(2) }"
           @click="setHeading(2)"
           title="Heading 2"
-        >
-          H2
-        </button>
+        >H2</button>
         <button
           type="button"
           :disabled="!editor"
           :class="{ active: isHeadingActive(3) }"
           @click="setHeading(3)"
           title="Heading 3"
-        >
-          H3
-        </button>
+        >H3</button>
       </div>
 
+      <span class="toolbar-divider"></span>
+
+      <!-- Lists -->
       <div class="toolbar-group">
         <button
           type="button"
@@ -434,7 +527,14 @@ const handleCommentCreated = (comment: any) => {
           @click="editor?.chain().focus().toggleBulletList().run()"
           title="Bullet List"
         >
-          List
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <circle cx="2.5" cy="4" r="1.5"/>
+            <circle cx="2.5" cy="8" r="1.5"/>
+            <circle cx="2.5" cy="12" r="1.5"/>
+            <rect x="6" y="3" width="9" height="2" rx="0.5"/>
+            <rect x="6" y="7" width="9" height="2" rx="0.5"/>
+            <rect x="6" y="11" width="9" height="2" rx="0.5"/>
+          </svg>
         </button>
         <button
           type="button"
@@ -443,7 +543,14 @@ const handleCommentCreated = (comment: any) => {
           @click="editor?.chain().focus().toggleTaskList().run()"
           title="Task List"
         >
-          Task
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <rect x="1" y="2" width="4" height="4" rx="0.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M2 9.5L3.5 11L6 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <rect x="1" y="12" width="4" height="4" rx="0.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="8" y="3" width="7" height="2" rx="0.5"/>
+            <rect x="8" y="8" width="7" height="2" rx="0.5"/>
+            <rect x="8" y="13" width="7" height="2" rx="0.5"/>
+          </svg>
         </button>
         <button
           type="button"
@@ -452,10 +559,15 @@ const handleCommentCreated = (comment: any) => {
           @click="editor?.chain().focus().toggleCodeBlock().run()"
           title="Code Block"
         >
-          Code
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M5.5 4L2 8l3.5 4 1.4-1.2L4.2 8l2.7-2.8L5.5 4zM10.5 4l-1.4 1.2L11.8 8l-2.7 2.8 1.4 1.2L14 8l-3.5-4z"/>
+          </svg>
         </button>
       </div>
 
+      <span class="toolbar-divider"></span>
+
+      <!-- Insert -->
       <div class="toolbar-group">
         <button
           type="button"
@@ -464,7 +576,10 @@ const handleCommentCreated = (comment: any) => {
           @click="openLinkModal"
           title="Insert Link (Ctrl+K)"
         >
-          🔗 Link
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M6.354 5.354a4 4 0 0 1 5.292-.001l.001.001 1 1a4 4 0 0 1-5.657 5.656l-.707-.706 1.414-1.414.707.707a2 2 0 0 0 2.828-2.829l-1-1a2 2 0 0 0-2.828 0L6.354 5.354z"/>
+            <path d="M9.646 10.646a4 4 0 0 1-5.292.001l-.001-.001-1-1a4 4 0 0 1 5.657-5.656l.707.706-1.414 1.414-.707-.707a2 2 0 0 0-2.828 2.829l1 1a2 2 0 0 0 2.828 0l1.06 1.414z"/>
+          </svg>
         </button>
         <button
           type="button"
@@ -472,7 +587,11 @@ const handleCommentCreated = (comment: any) => {
           @click="openImageModal"
           title="Insert Image"
         >
-          🖼️ Image
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <rect x="1" y="2" width="14" height="12" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="5" cy="6" r="1.5"/>
+            <path d="M1 12l3-3 2 2 4-4 5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </button>
         <button
           type="button"
@@ -481,7 +600,13 @@ const handleCommentCreated = (comment: any) => {
           @click="openTableModal"
           title="Insert Table"
         >
-          📊 Table
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <rect x="1" y="2" width="14" height="12" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="1" y1="6" x2="15" y2="6" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="1" y1="10" x2="15" y2="10" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="6" y1="2" x2="6" y2="14" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="11" y1="2" x2="11" y2="14" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
         </button>
         <button
           type="button"
@@ -489,31 +614,43 @@ const handleCommentCreated = (comment: any) => {
           @click="triggerFileUpload"
           title="Attach File"
         >
-          {{ uploadingFile ? '⏳' : '📎' }} File
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M11.5 2a3.5 3.5 0 0 1 0 7l-6.5 0a2 2 0 0 1 0-4l5.5 0a0.5 0.5 0 0 1 0 1l-5.5 0a1 1 0 0 0 0 2l6.5 0a2.5 2.5 0 0 0 0-5l-7 0a4 4 0 0 0 0 8l5.5 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
         </button>
       </div>
 
+      <span class="toolbar-divider"></span>
+
+      <!-- Comments -->
       <div class="toolbar-group">
         <button
           type="button"
           :disabled="!editor"
           @click="createCommentFromSelection"
-          title="Add Comment (Ctrl+Shift+M)"
+          title="Add Comment"
         >
-          💬 Comment
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M2 2h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H5l-3 3V3a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="5" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="5" y1="9" x2="9" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
         </button>
         <button
           type="button"
           :disabled="!editor"
           :class="{ active: showCommentSidebar }"
           @click="showCommentSidebar = !showCommentSidebar"
-          title="Toggle Comment Sidebar"
+          title="View All Comments"
         >
-          {{ showCommentSidebar ? '⬅️' : '➡️' }} Comments
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M2 2h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H5l-3 3V3a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+          <span class="btn-badge" v-if="showCommentSidebar">•</span>
         </button>
       </div>
 
-      <span class="save-status">{{ saving ? 'Saving...' : lastSavedAt ? `Saved ${lastSavedAt}` : 'Autosave on' }}</span>
+      <span class="save-status">{{ saving ? 'Saving...' : lastSavedAt ? `Saved ${lastSavedAt}` : '' }}</span>
     </div>
 
     <!-- Table controls - shown when cursor is inside a table -->
@@ -540,6 +677,25 @@ const handleCommentCreated = (comment: any) => {
     </div>
 
     <EditorContent :editor="editor" />
+    </div>
+
+    <!-- Backdrop overlay when comments are open -->
+    <div
+      v-if="showCommentSidebar"
+      class="comment-backdrop"
+      @click="showCommentSidebar = false"
+    ></div>
+
+    <!-- Comment Sidebar -->
+    <CommentSidebar
+      v-if="showCommentSidebar"
+      ref="commentSidebarRef"
+      :document-id="documentId"
+      :project-id="projectId"
+      :pending-anchor="pendingCommentAnchor"
+      @comment-created="handleCommentCreated"
+      @close="showCommentSidebar = false"
+    />
 
     <!-- Hidden file input for attachments -->
     <input
@@ -657,17 +813,6 @@ const handleCommentCreated = (comment: any) => {
         </div>
       </div>
     </div>
-    </div>
-
-    <!-- Comment Sidebar -->
-    <CommentSidebar
-      v-if="showCommentSidebar"
-      ref="commentSidebarRef"
-      :document-id="documentId"
-      :project-id="projectId"
-      :pending-anchor="pendingCommentAnchor"
-      @comment-created="handleCommentCreated"
-    />
   </div>
 </template>
 
@@ -676,74 +821,94 @@ const handleCommentCreated = (comment: any) => {
   display: flex;
   flex-direction: column;
   height: 100%;
-}
-
-.editor-container.with-sidebar {
-  display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 0;
+  width: 100%;
+  position: relative;
 }
 
 .editor-main {
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-width: 0;
+  flex: 1;
 }
 
-/* Toolbar */
+/* Toolbar - Compact Icon Style */
 .toolbar {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
-  padding-bottom: var(--space-4);
+  gap: var(--space-1);
+  padding-bottom: var(--space-3);
   margin-bottom: var(--space-4);
   border-bottom: 1px solid var(--color-border);
-  flex-wrap: wrap;
 }
 
 .toolbar-group {
   display: flex;
-  gap: var(--space-1);
+  gap: 2px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border);
+  margin: 0 var(--space-2);
 }
 
 .toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
-  color: var(--color-text-secondary);
+  color: var(--color-text-tertiary);
   background: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius-xs);
+  padding: 0;
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
-  white-space: nowrap;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  position: relative;
 }
 
 .toolbar button:hover:not(:disabled) {
   background: var(--color-bg-hover);
   color: var(--color-text);
-  border-color: var(--color-border-strong);
 }
 
 .toolbar button.active {
   background: var(--color-bg-hover);
   color: var(--color-text);
-  border-color: var(--color-border-strong);
-  font-weight: 600;
 }
 
 .toolbar button:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
+}
+
+.toolbar button svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.btn-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 8px;
+  color: var(--color-text);
+  line-height: 1;
 }
 
 .save-status {
   margin-left: auto;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 10px;
   color: var(--color-text-tertiary);
+  padding-left: var(--space-2);
 }
 
 /* Editor content area */
@@ -754,6 +919,8 @@ const handleCommentCreated = (comment: any) => {
   font-size: 15px;
   line-height: 1.7;
   color: var(--color-text);
+  overflow-y: auto;
+  min-height: 0;
 }
 
 :deep(.tiptap p.is-editor-empty:first-child::before) {
@@ -858,13 +1025,13 @@ const handleCommentCreated = (comment: any) => {
 }
 
 :deep(.tiptap .editor-link) {
-  color: var(--color-primary, #0066cc);
+  color: var(--color-text-secondary);
   text-decoration: underline;
   cursor: pointer;
 }
 
 :deep(.tiptap .editor-link:hover) {
-  color: var(--color-primary-dark, #0052a3);
+  color: var(--color-text);
 }
 
 :deep(.tiptap .editor-image) {
@@ -909,7 +1076,7 @@ const handleCommentCreated = (comment: any) => {
 }
 
 :deep(.tiptap .editor-table .selectedCell) {
-  background: rgba(200, 200, 255, 0.2);
+  background: var(--color-bg-hover);
 }
 
 :deep(.tiptap .editor-table .column-resize-handle) {
@@ -918,7 +1085,7 @@ const handleCommentCreated = (comment: any) => {
   top: 0;
   bottom: -2px;
   width: 4px;
-  background-color: var(--color-primary, #0066cc);
+  background-color: var(--color-text-secondary);
   pointer-events: none;
 }
 
@@ -952,6 +1119,11 @@ const handleCommentCreated = (comment: any) => {
 }
 
 .table-controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 500;
@@ -972,13 +1144,13 @@ const handleCommentCreated = (comment: any) => {
 }
 
 .table-controls button.danger-btn {
-  color: #dc3545;
-  border-color: #dc3545;
+  color: var(--color-text-secondary);
+  border-color: var(--color-border-strong);
 }
 
 .table-controls button.danger-btn:hover {
-  background: #dc3545;
-  color: white;
+  background: var(--color-bg-hover);
+  color: var(--color-text);
 }
 
 /* Modal */
@@ -988,7 +1160,7 @@ const handleCommentCreated = (comment: any) => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(22, 22, 22, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1002,7 +1174,6 @@ const handleCommentCreated = (comment: any) => {
   padding: var(--space-6);
   width: 90%;
   max-width: 500px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .modal h3 {
@@ -1028,6 +1199,8 @@ const handleCommentCreated = (comment: any) => {
 
 .modal-field input {
   width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
   font-family: var(--font-mono);
   font-size: 14px;
   padding: var(--space-3);
@@ -1083,6 +1256,11 @@ const handleCommentCreated = (comment: any) => {
 }
 
 .modal-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 500;
@@ -1105,14 +1283,13 @@ const handleCommentCreated = (comment: any) => {
 }
 
 .modal-actions button.primary {
-  background: var(--color-primary, #0066cc);
-  border: 1px solid var(--color-primary, #0066cc);
-  color: white;
+  background: var(--color-text);
+  border: 1px solid var(--color-text);
+  color: var(--color-text-inverse);
 }
 
 .modal-actions button.primary:hover:not(:disabled) {
-  background: var(--color-primary-dark, #0052a3);
-  border-color: var(--color-primary-dark, #0052a3);
+  opacity: 0.9;
 }
 
 .modal-actions button.primary:disabled {
@@ -1122,13 +1299,13 @@ const handleCommentCreated = (comment: any) => {
 
 .modal-actions button.danger {
   background: transparent;
-  border: 1px solid #dc3545;
-  color: #dc3545;
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-secondary);
 }
 
 .modal-actions button.danger:hover {
-  background: #dc3545;
-  color: white;
+  background: var(--color-bg-hover);
+  color: var(--color-text);
 }
 
 .modal-info {
@@ -1141,9 +1318,30 @@ const handleCommentCreated = (comment: any) => {
   margin-bottom: var(--space-4);
 }
 
+/* Comment backdrop */
+.comment-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(22, 22, 22, 0.3);
+  z-index: 999;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* Comment marks */
 :deep(.tiptap .comment-mark) {
-  background-color: rgba(255, 220, 100, 0.2);
+  background-color: var(--color-bg-active);
   border-radius: 2px;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -1151,7 +1349,7 @@ const handleCommentCreated = (comment: any) => {
 }
 
 :deep(.tiptap .comment-mark:hover) {
-  background-color: rgba(255, 220, 100, 0.4);
+  background-color: var(--color-bg-sidebar-active);
 }
 
 :deep(.tiptap .comment-icon) {
